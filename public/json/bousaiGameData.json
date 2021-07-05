@@ -1,0 +1,35 @@
+{
+    "question":[{
+        "text":"大きな地震に被災したときのことを想定します。<br>備蓄のあった以下の食べ物のどれかについて、<br>他の選択肢には無い長所を考えてみましょう。<br>限られた条件下で特に有用であれば、<br>条件を付け足してみても構いません。<br>",
+        "image":[{
+            "alt":"カップラーメン",
+            "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Ffood_cup_noodle_close.png?v=1625035969381"
+        },
+        {
+            "alt":"乾パン",
+            "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fbousai_kanpan.png?v=1625035942745"
+        },
+        {
+            "alt":"缶詰",
+            "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Ffood_kandume_close.png?v=1625035995781"
+        }
+        ]
+    },
+    {
+        "text":"大きな地震に被災したときのことを想定します。<br>水を保管、運搬するための以下の容器について、<br>他の選択肢には無い長所を考えてみましょう。<br>限られた条件下で特に有用であれば、<br>条件を付け足してみても構いません。<br>",
+        "image":[{
+            "alt":"ペットボトル",
+            "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fbousai_water.png?v=1625035955109"
+        },
+        {
+            "alt":"バケツ",
+            "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fbucket_blue_water_down.png?v=1625036017357"
+        },
+        {
+            "alt":"レジ袋",
+            "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fshopping_bag_rejibukuro.png?v=1625036004528"
+        }
+        ]
+    }
+    ]
+}
