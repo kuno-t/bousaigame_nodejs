@@ -1,0 +1,29 @@
+{
+  "name": "nodeTest",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.1.2",
+    "express": "^4.17.1",
+    "fastify": "^3.18.0",
+    "fastify-static": "^4.2.2",
+    "fastify-formbody": "^5.0.0"
+  },
+  "engines": {
+    "node": "12.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kuno-t/nodeJsTest.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kuno-t/nodeJsTest/issues"
+  },
+  "homepage": "https://github.com/kuno-t/nodeJsTest#readme"
+}
