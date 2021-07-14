@@ -15,8 +15,8 @@ app.use(express.static(__dirname + "/public"));
 
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
-  socket.on("client_to_server", function(data) { //client_to_serverという名前の通信を受け付けたら
-    io.sockets.emit("server_to_client", { html: data.html, number:data.number }); //server_to_clientという名前で送り返す
+  socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
+    io.sockets.emit("server_to_client_text", { html: data.html, number:data.number }); //server_to_clientという名前で送り返す
   });
   
   /*問題と画像*/
