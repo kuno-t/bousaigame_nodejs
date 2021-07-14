@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <title>災害想像力ゲーム</title>
     <link rel="stylesheet" type="text/css" href="/stylesheets/style.css" />
+    <script
+      type="text/javascript"
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+    ></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+      const socket = io.connect();
+    </script>
   </head>
   <body>
     <div class="questionContainer">
@@ -62,11 +70,7 @@
 
     <script
       type="text/javascript"
-      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      src="/javascripts/bousaiGameScript.js"
     ></script>
   </body>
-  <script
-    type="text/javascript"
-    src="/javascripts/bousaiGameScript.js"
-  ></script>
 </html>

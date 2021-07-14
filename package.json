@@ -7,11 +7,11 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "socket.io": "^4.1.2",
     "express": "^4.17.1",
     "fastify": "^3.18.0",
+    "fastify-formbody": "^5.0.0",
     "fastify-static": "^4.2.2",
-    "fastify-formbody": "^5.0.0"
+    "socket.io": "^4.1.2"
   },
   "engines": {
     "node": "12.x"

@@ -15,7 +15,6 @@ const dataUrl = "json/bousaiGameData.json";
 var bousaiJSON; //JSONが入る
 var playerNum = -1;
 var playerName = "ダミーくん"; //あとで別ページで入力させたものを呼び出すか、もしくは名前入力欄を作る
-//各種定数・変数の宣言ここまで
 
 //関数
 function answerButtonOnClick() {
@@ -23,16 +22,20 @@ function answerButtonOnClick() {
   if (playerNum === -1) {
     return; //プレイヤー未定なら何もしない
   }
-  let answerText = answerTextArea.value;
+  let answerText = answerTextArea.value; //テキストを読み取る
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
-  console.log(answerText);
-  displayAnswer[playerNum].innerHTML += playerName + ":<br>" + answerTextHTML; //HTMLとして出力
   answerTextArea.value = ""; //テキストエリアをクリア
-  displayAnswer[playerNum].scrollTop = displayAnswer[playerNum].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
+  console.log(answerText);
+  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum}); //サーバーに送る
 }
 
+socket.on("server_to_client_text",function(data){ //サーバーから受け取る
+  displayAnswer[data.number].innerHTML += playerName + ":<br>" + data.html; //HTMLとして出力
+  displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
+});
+
+/* ゲームスタート */
 function startButtonOnClick() {
-  var QNum, INum; //QuestionNumber,ImageNumber
   $.getJSON(dataUrl, bousaiJSON => {
     let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める
     let imageList = bousaiJSON.question[Qnum].image;
@@ -43,17 +46,22 @@ function startButtonOnClick() {
       image[i] = imageList[numList[i]]; //image決定
     }
     console.log(image);
+    socket.emit("c_to_s_question", {question:Qnum, image:image});
+  });
+}
 
-    questionText.innerHTML = bousaiJSON.question[Qnum].text;
+socket.on("s_to_c_question",function(data){
+  $.getJSON(dataUrl,bousaiJSON =>{
+    questionText.innerHTML = bousaiJSON.question[data.Qnum].text;
     for (var i = 0; i < choiceNum; i++) {
       document.getElementById(`imageFrame${i + 1}`).innerHTML = `<img src="${
-        image[i].src
-      }" alt="${image[i].alt}" title="選択肢${i +
+        data.image[i].src
+      }" alt="${data.image[i].alt}" title="選択肢${i +
         1}" class="choicesImage" id="choiceImage${i +
         1}" onclick="imageOnClick('#choiceImage${i + 1}')">`; // ``の中に${}で変数展開
     }
   });
-}
+});
 
 function imageOnClick(imageId) {
   //画像クリック時呼び出し
