@@ -7,20 +7,33 @@ const displayAnswer = [
   document.getElementById("displayAnswer4"),
   document.getElementById("displayAnswer5")
 ];
-const answerTextArea = document.getElementById("answerTextArea");
+
+var displayPlayerNameElement = [
+  document.getElementById("playerName1"),
+  document.getElementById("playerName2"),
+  document.getElementById("playerName3"),
+  document.getElementById("playerName4"),
+  document.getElementById("playerName5")
+];
+
+const answerTextArea = document.getElementById("answerTextArea"); 
 const answerButton = document.getElementById("answerButton");
 const seat = document.getElementsByClassName("seat");
+const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
 const dataUrl = "json/bousaiGameData.json";
 var bousaiJSON; //JSONが入る
 var playerNum = -1;
-var playerName = "ダミーくん"; //あとで別ページで入力させたものを呼び出すか、もしくは名前入力欄を作る
+var nowPlayerName = playerName.value; //あとで別ページで入力させたものを呼び出すか、もしくは名前入力欄を作る
+var playerList = [false,false,false,false,false];
+
 
 //関数
 function answerButtonOnClick() {
   //テキスト欄からの書き込みを行う
   if (playerNum === -1) {
-    return; //プレイヤー未定なら何もしない
+    window.alert("まだ着席していません");
+    return; //プレイヤー未定なら警告だけ出して何もしない
   }
   let answerText = answerTextArea.value; //テキストを読み取る
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
@@ -30,7 +43,7 @@ function answerButtonOnClick() {
 }
 
 socket.on("server_to_client_text",function(data){ //サーバーから受け取る
-  displayAnswer[data.number].innerHTML += playerName + ":<br>" + data.html; //HTMLとして出力
+  displayAnswer[data.number].innerHTML += "<br>" + nowPlayerName + ":<br>" + data.html; //HTMLとして出力
   displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
 });
 
@@ -52,7 +65,7 @@ function startButtonOnClick() {
 
 socket.on("s_to_c_question",function(data){
   $.getJSON(dataUrl,bousaiJSON =>{
-    questionText.innerHTML = bousaiJSON.question[data.Qnum].text;
+    questionText.innerHTML = bousaiJSON.question[data.Qnum].text + "<button id='send'>送信確定</button>";
     for (var i = 0; i < choiceNum; i++) {
       document.getElementById(`imageFrame${i + 1}`).innerHTML = `<img src="${
         data.image[i].src
@@ -69,12 +82,35 @@ function imageOnClick(imageId) {
   answerTextArea.value += $(imageId).attr("alt");
 }
 
-$(function() {
+playerName.addEventListener('focusout',(e) => { //名前欄からフォーカスが外れたらプレイヤー名取得
+  nowPlayerName = playerName.value;
+  console.log(nowPlayerName);
+});
+
+$(function() { //着席処理
   $(".seat").on("click", function() {
     //着席ボタンで呼び出し
+    if(playerNum > -1){
+      playerList[playerNum]=false;
+    }
     console.log($(this).attr("data-num"));
+    var oldPlayerNum = playerNum;
     playerNum = $(this).attr("data-num") - 1;
+    socket.emit("sit_down", {num:playerNum,name:nowPlayerName,oldNum:oldPlayerNum});
   });
+});
+
+socket.on("c_sit_down",function(data){
+  displayPlayerNameElement[data.num].innerHTML = playerList[data.num] = data.name; //名前を表示しつつプレイヤーリストに保持
+  document.getElementById(`seat${data.num + 1}`).disabled = true; //着席したらボタンを非活性化
+  
+  if(data.oldNum != -1) { 
+    displayPlayerNameElement[data.oldNum].innerHTML = "空席";
+    playerList[data.oldNum] = false;
+    document.getElementById(`seat${data.oldNum + 1}`).disabled = false;
+  } //初めての着席じゃなければ、前に座っていた席を空席にしてボタンを活性化
+  
+  console.log(playerList);
 });
 
 function randoms(num, max) {

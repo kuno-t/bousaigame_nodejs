@@ -13,6 +13,10 @@ var io = socketio(server); //仕様変更でsocketio.listen(server)から変更
 /* static要素のルーティングを読み込み*/
 app.use(express.static(__dirname + "/public"));
 
+/*プレイヤー管理変数*/
+var playerList = [false,false,false,false,false];
+
+var startAgree = 0
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
@@ -23,4 +27,28 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     socket.on("c_to_s_question", function(data) { 
     io.sockets.emit("s_to_c_question", {Qnum: data.question, image:data.image });
   });
+  
+  /* 着席処理 */
+  socket.on("sit_down",function(data){
+    playerList[data.num] = data.name;
+    if(data.oldNum != -1){playerList[data.oldnum] = false;} 
+    io.sockets.emit("c_sit_down",{num: data.num, name:data.name, oldNum:data.oldNum});
+  });
+  
+  /* 開始処理 */
+  socket.on("game_start",function(data){
+  startAgree += 1;
+    if(startAgree >= playerList.filter(n => n == true).length ){
+      io.sockets.emit("all_agree",{num: data.num, name:data.name});
+    }
+  });
+  
+  /* リセット */
+  socket.on("reset",function(data){
+    startAgree = 0;
+    playerList = [false,false,false,false,false];
+      io.sockets.emit("reset");
+  });
+  
+  
 });

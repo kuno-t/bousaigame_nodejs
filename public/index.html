@@ -14,6 +14,9 @@
     </script>
   </head>
   <body>
+    
+    <button class="warningButton" id="resetbutton"> リセットボタン </button>
+      
     <div class="questionContainer">
       <div class="question" id="questionText">
         現在、待機中です。<br />
@@ -30,6 +33,7 @@
       </div>
 
       <div class="answer">
+        <input type="text" name="name" id="playerName" value="プレイヤーネーム"><br >
         <textarea
           id="answerTextArea"
           cols="50"
@@ -42,27 +46,27 @@
     </div>
     <div class="displayAnswerContainer">
       <div class="displayAnswer" id="displayAnswer1">
-        プレイヤー1<button class="seat" id="seat1" data-num="1" type="button">
+        <div id="playerName1">空席</div><button class="seat" id="seat1" data-num="1" type="button">
           着席</button
         ><br />
       </div>
       <div class="displayAnswer" id="displayAnswer2">
-        プレイヤー2<button class="seat" id="seat2" data-num="2" type="button">
+        <div id="playerName2">空席</div><button class="seat" id="seat2" data-num="2" type="button">
           着席</button
         ><br />
       </div>
       <div class="displayAnswer" id="displayAnswer3">
-        プレイヤー3<button class="seat" id="seat3" data-num="3" type="button">
+        <div id="playerName3">空席</div><button class="seat" id="seat3" data-num="3" type="button">
           着席</button
         ><br />
       </div>
       <div class="displayAnswer" id="displayAnswer4">
-        プレイヤー4<button class="seat" id="seat4" data-num="4" type="button">
+        <div id="playerName4">空席</div><button class="seat" id="seat4" data-num="4" type="button">
           着席</button
         ><br />
       </div>
       <div class="displayAnswer" id="displayAnswer5">
-        プレイヤー5<button class="seat" id="seat5" data-num="5" type="button">
+        <div id="playerName5">空席</div><button class="seat" id="seat5" data-num="5" type="button">
           着席</button
         ><br />
       </div>
