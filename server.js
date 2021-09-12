@@ -15,12 +15,14 @@ app.use(express.static(__dirname + "/public"));
 
 /*プレイヤー管理変数*/
 var playerList = [false,false,false,false,false];
+var playerScore = [0,0,0,0,0]; //スコア集計で参照中。ここはプレイヤーを構造化すべきかも
 
 var startAgree = 0
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
+  
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
-    io.sockets.emit("server_to_client_text", { html: data.html, number:data.number }); //server_to_clientという名前で送り返す
+    io.sockets.emit("server_to_client_text", { html: data.html, number:data.number, player:data.player }); //server_to_clientという名前で送り返す
   });
   
   /*問題と画像*/
@@ -50,5 +52,21 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       io.sockets.emit("reset");
   });
   
+  /* スコア集計 */
+  socket.on("score_set",function(data){ //
+    for(let i = 0; i < 5; i++){
+      playerScore[i] += data.score[i]; //(仮)
+    };
+  });
+  
+  /* スコア表示 */
+  socket.on("score_get",function(data){ //
+    io.sockets.emit("score_get_back", {playerScore: playerScore})
+  });
+  
+  socket.on('disconnect',() => { //切断時処理
+    console.log( 'disconnect' );
+    io.sockets.emit("server_to_client", { value: 'someone is disconnected.'});
+  });
   
 });

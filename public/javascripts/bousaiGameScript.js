@@ -24,7 +24,7 @@ const choiceNum = 3; //選択肢数は暫定3
 const dataUrl = "json/bousaiGameData.json";
 var bousaiJSON; //JSONが入る
 var playerNum = -1;
-var nowPlayerName = playerName.value; //あとで別ページで入力させたものを呼び出すか、もしくは名前入力欄を作る
+var nowPlayerName = playerName.value; //名前入力欄
 var playerList = [false,false,false,false,false];
 
 
@@ -39,18 +39,18 @@ function answerButtonOnClick() {
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
-  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum}); //サーバーに送る
+  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum, player:nowPlayerName}); //サーバーに送る
 }
 
 socket.on("server_to_client_text",function(data){ //サーバーから受け取る
-  displayAnswer[data.number].innerHTML += "<br>" + nowPlayerName + ":<br>" + data.html; //HTMLとして出力
+  displayAnswer[data.number].innerHTML += "<br>" + data.player + ":<br>" + data.html; //HTMLとして出力
   displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
 });
 
 /* ゲームスタート */
 function startButtonOnClick() {
   $.getJSON(dataUrl, bousaiJSON => {
-    let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める
+    let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める予定
     let imageList = bousaiJSON.question[Qnum].image;
     let image = [];
     let numList = randoms(choiceNum, imageList.length); //完成時にはサーバーサイドから受け取る
@@ -65,7 +65,7 @@ function startButtonOnClick() {
 
 socket.on("s_to_c_question",function(data){
   $.getJSON(dataUrl,bousaiJSON =>{
-    questionText.innerHTML = bousaiJSON.question[data.Qnum].text + "<button id='send'>送信確定</button>";
+    questionText.innerHTML = bousaiJSON.question[data.Qnum].text + "<button class='send_OK_button' id='send_OK'>送信確定</button>";
     for (var i = 0; i < choiceNum; i++) {
       document.getElementById(`imageFrame${i + 1}`).innerHTML = `<img src="${
         data.image[i].src
