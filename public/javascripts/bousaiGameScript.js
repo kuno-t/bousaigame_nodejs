@@ -1,4 +1,9 @@
+/* 要素の紐付け */
+const noEntryText = document.getElementById("noEntryText");
+const setUptext = document.getElementById("setUpText");
 const questionText = document.getElementById("questionText");
+
+const entryButton = document.getElementById("entryButton");
 const startButton = document.getElementById("startButton");
 const displayAnswer = [
   document.getElementById("displayAnswer1"),
@@ -21,9 +26,9 @@ const answerButton = document.getElementById("answerButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
-const dataUrl = "json/bousaiGameData.json";
+const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
-var playerNum = -1;
+var playerNum = -1; //初期値(未参加)なら-1
 var nowPlayerName = playerName.value; //名前入力欄
 var playerList = [false,false,false,false,false];
 

@@ -17,14 +17,65 @@
     
     <button class="warningButton" id="resetbutton"> リセットボタン </button>
       
-    <div class="questionContainer">
-      <div class="question" id="questionText">
-        現在、待機中です。<br />
-        新たにゲームを開始したい場合は、<br />
-        下の開始ボタンを押してみてください。<br />
-        参加者が全員開始ボタンを押すことで、<br />
-        ゲームが始まります。<br />
-        <button id="startButton" type="button">開始</button>
+    <div class="infomationContainer">
+      <div class="textContainer">
+        <div class="infomationText" id="noEntryText">
+          現在、未参加です。<br />
+          ゲームに参加したい場合は、<br />
+          下の着席ボタンを押してください。<br />
+
+          <button id="entryButton" type="button">着席</button>
+        </div>
+        
+        <!-- > 待機中 < -->
+        <div class="infomationText" id="setUpText" hidden="hidden">
+          現在、待機中です。<br />
+          ゲームを開始したい場合は、<br />
+          下の開始ボタンを押してください。<br />
+          参加者が全員開始ボタンを押すことで、<br />
+          ゲームが始まります。<br />
+          <button id="startButton" type="button">開始</button>
+        </div>
+        
+        <!-- > ゲーム開始後：ここに問題文 < -->
+        <div class="infomationText" id="questionText" hidden="hidden">
+
+        </div>
+        
+        <!-- > 投票時 < -->
+        <div class="infomationText" id="voteText" hidden="hidden">
+          <div class="vote" id="votePlayer1">
+            <span>空席</span>
+            <button id="downVote" type="button">-</button>
+            <span id="score1">0</span>
+            <button id="upVote" type="button">+</button>
+          </div>
+          <div class="vote" id="votePlayer2">
+            <span>空席</span>
+            <button id="downVote" type="button">-</button>
+            <span id="score1">0</span>
+            <button id="upVote" type="button">+</button>
+          </div>
+          <div class="vote" id="votePlayer3">
+            <span>空席</span>
+            <button id="downVote" type="button">-</button>
+            <span id="score1">0</span>
+            <button id="upVote" type="button">+</button>
+          </div>
+          <div class="vote" id="votePlayer4">
+            <span>空席</span>
+            <button id="downVote" type="button">-</button>
+            <span id="score1">0</span>
+            <button id="upVote" type="button">+</button>
+          </div>
+          <div class="vote" id="votePlayer5">
+            <span>空席</span>
+            <button id="downVote" type="button">-</button>
+            <span id="score1">0</span>
+            <button id="upVote" type="button">+</button>
+          </div>
+        </div>
+        
       </div>
       <div class="choicesImageContainer">
         <div class="choicesImageFrame" id="imageFrame1"></div>
@@ -47,7 +98,7 @@
     <div class="displayAnswerContainer">
       
       <div class="displayAnswerInfo" id="displayAnswerInfo1">
-        <div id="playerName1">空席</div>
+        <span id="playerName1">空席</span>
         <button class="seat" id="seat1" data-num="1" type="button">
           着席</button><br />
         <div class="displayAnswer" id="displayAnswer1">
@@ -56,7 +107,7 @@
       </div>
       
       <div class="displayAnswerInfo" id="displayAnswerInfo2">
-        <div id="playerName2">空席</div>
+        <span id="playerName2">空席</span>
         <button class="seat" id="seat2" data-num="2" type="button">
           着席</button><br />
         <div class="displayAnswer" id="displayAnswer2">
@@ -65,7 +116,8 @@
       </div>
 
       <div class="displayAnswerInfo" id="displayAnswerInfo3">
-        <div id="playerName3">空席</div><button class="seat" id="seat3" data-num="3" type="button">
+        <span id="playerName3">空席</span>
+        <button class="seat" id="seat3" data-num="3" type="button">
           着席</button><br />
         <div class="displayAnswer" id="displayAnswer3">
           
@@ -73,7 +125,8 @@
       </div>
       
       <div class="displayAnswerInfo" id="displayAnswerInfo4">
-        <div id="playerName4">空席</div><button class="seat" id="seat4" data-num="4" type="button">
+        <span id="playerName4">空席</span>
+        <button class="seat" id="seat4" data-num="4" type="button">
           着席</button><br />
         <div class="displayAnswer" id="displayAnswer4">
           
@@ -81,7 +134,8 @@
       </div>
       
       <div class="displayAnswerInfo" id="displayAnswerInfo5">
-        <div id="playerName5">空席</div><button class="seat" id="seat5" data-num="5" type="button">
+        <span id="playerName5">空席</span>
+        <button class="seat" id="seat5" data-num="5" type="button">
           着席</button><br />
         <div class="displayAnswer" id="displayAnswer5">
           
