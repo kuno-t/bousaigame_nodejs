@@ -15,7 +15,7 @@
   </head>
   <body>
     
-    <button class="warningButton" id="resetbutton"> リセットボタン </button>
+    <button class="warningButton" id="resetbutton"> リセットボタン（未機能） </button>
       
     <div class="infomationContainer">
       <div class="textContainer">
@@ -38,42 +38,51 @@
         </div>
         
         <!-- > ゲーム開始後：ここに問題文 < -->
-        <div class="infomationText" id="questionText" hidden="hidden">
-
+        <div class="infomationText" id="questionTextAndButton" hidden="hidden">
+          <div id="questionText"></div>
+          <button class='send_OK_button' id='answerSendButton'>送信確定</button>
         </div>
         
         <!-- > 投票時 < -->
         <div class="infomationText" id="voteText" hidden="hidden">
+          
           <div class="vote" id="votePlayer1">
-            <span>空席</span>
+            <span id="votePlayerName1">空席</span>
             <button id="downVote" type="button">-</button>
             <span id="score1">0</span>
             <button id="upVote" type="button">+</button>
           </div>
+          
           <div class="vote" id="votePlayer2">
-            <span>空席</span>
+            <span id="votePlayerName2">空席</span>
             <button id="downVote" type="button">-</button>
             <span id="score1">0</span>
             <button id="upVote" type="button">+</button>
           </div>
+          
           <div class="vote" id="votePlayer3">
-            <span>空席</span>
+            <span id="votePlayerName3">空席</span>
             <button id="downVote" type="button">-</button>
             <span id="score1">0</span>
             <button id="upVote" type="button">+</button>
           </div>
+          
           <div class="vote" id="votePlayer4">
-            <span>空席</span>
+            <span id="votePlayerName4">空席</span>
             <button id="downVote" type="button">-</button>
             <span id="score1">0</span>
             <button id="upVote" type="button">+</button>
           </div>
+          
           <div class="vote" id="votePlayer5">
-            <span>空席</span>
+            <span id="votePlayerName5">空席</span>
             <button id="downVote" type="button">-</button>
             <span id="score1">0</span>
             <button id="upVote" type="button">+</button>
           </div>
+          
+          <button id="voteSendButton" type="button">決定</button>
+          
         </div>
         
       </div>

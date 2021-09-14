@@ -1,10 +1,15 @@
 /* 要素の紐付け */
 const noEntryText = document.getElementById("noEntryText");
-const setUptext = document.getElementById("setUpText");
+const setUpText = document.getElementById("setUpText");
+const questionTextAndButton = document.getElementById("questionTextAndButton");
 const questionText = document.getElementById("questionText");
+const voteText = document.getElementById("voteText");
 
 const entryButton = document.getElementById("entryButton");
 const startButton = document.getElementById("startButton");
+const answerSendButton = document.getElementById("answerSendButton");
+const voteSendButton = document.getElementById("voteSendButton");
+
 const displayAnswer = [
   document.getElementById("displayAnswer1"),
   document.getElementById("displayAnswer2"),
@@ -21,6 +26,14 @@ var displayPlayerNameElement = [
   document.getElementById("playerName5")
 ];
 
+var votePlayerNameElement = [
+  document.getElementById("votePlayerName1"),
+  document.getElementById("votePlayerName2"),
+  document.getElementById("votePlayerName3"),
+  document.getElementById("votePlayerName4"),
+  document.getElementById("votePlayerName5")
+];
+
 const answerTextArea = document.getElementById("answerTextArea"); 
 const answerButton = document.getElementById("answerButton");
 const seat = document.getElementsByClassName("seat");
@@ -30,8 +43,20 @@ const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
 var playerNum = -1; //初期値(未参加)なら-1
 var nowPlayerName = playerName.value; //名前入力欄
-var playerList = [false,false,false,false,false];
+var playerList = [];
 
+var token;
+
+
+/* トークンの設定 */
+socket.on("token",function(data){
+  token = data.token;
+});
+
+socket.on("setUpData",function(data){
+  playerList = data.playerList;
+  chair_controll(); //playerListからプレイヤー表示をする自作関数
+});
 
 //関数
 function answerButtonOnClick() {
@@ -44,16 +69,17 @@ function answerButtonOnClick() {
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
-  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum, player:nowPlayerName}); //サーバーに送る
+  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum, name:nowPlayerName}); //サーバーに送る
 }
 
 socket.on("server_to_client_text",function(data){ //サーバーから受け取る
-  displayAnswer[data.number].innerHTML += "<br>" + data.player + ":<br>" + data.html; //HTMLとして出力
+  displayAnswer[data.number].innerHTML += data.name + ":<br>" + data.html　+　"<br>"; //HTMLとして出力
   displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
 });
 
 /* ゲームスタート */
 function startButtonOnClick() {
+  
   $.getJSON(dataUrl, bousaiJSON => {
     let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める予定
     let imageList = bousaiJSON.question[Qnum].image;
@@ -69,8 +95,12 @@ function startButtonOnClick() {
 }
 
 socket.on("s_to_c_question",function(data){
+  
+  setUpText.hidden = true;
+  questionTextAndButton.hidden = false; //表示テキストの切り替え
+  
   $.getJSON(dataUrl,bousaiJSON =>{
-    questionText.innerHTML = bousaiJSON.question[data.Qnum].text + "<button class='send_OK_button' id='send_OK'>送信確定</button>";
+    questionText.innerHTML = bousaiJSON.question[data.Qnum].text;
     for (var i = 0; i < choiceNum; i++) {
       document.getElementById(`imageFrame${i + 1}`).innerHTML = `<img src="${
         data.image[i].src
@@ -80,6 +110,9 @@ socket.on("s_to_c_question",function(data){
     }
   });
 });
+
+
+
 
 function imageOnClick(imageId) {
   //画像クリック時呼び出し
@@ -105,6 +138,27 @@ $(function() { //着席処理
   });
 });
 
+/* 着席処理 */
+function entryButtonOnClick(){
+  socket.emit("sit_down", {name:nowPlayerName});
+}
+
+socket.on("sit_down_error",function(data){
+  window.alert("満員です");
+});
+
+socket.on("c_sit_down",function(data){
+  playerNum = data.num;
+  playerList = data.playerList;
+  chair_controll(); //playerListからプレイヤー表示をする自作関数
+  
+  if(token == data.token){
+    noEntryText.hidden = true;
+    setUpText.hidden = false;
+  }
+});
+
+/* //古いバージョン
 socket.on("c_sit_down",function(data){
   displayPlayerNameElement[data.num].innerHTML = playerList[data.num] = data.name; //名前を表示しつつプレイヤーリストに保持
   document.getElementById(`seat${data.num + 1}`).disabled = true; //着席したらボタンを非活性化
@@ -117,6 +171,35 @@ socket.on("c_sit_down",function(data){
   
   console.log(playerList);
 });
+*/
+
+function chair_controll(){ //参加者の椅子の制御
+  for(let index = 0; index<5; index++){
+    var elem = playerList[index]; 
+    if(index < playerList.length) {
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = elem;
+      console.log(index + ": " + elem);
+    } else {
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = "空席";
+    }
+  }
+}
+
+/* 回答の送信 */
+function answerSendButtonOnClick(){
+  
+  /* 途中 */
+  questionTextAndButton.hidden = true;
+  voteText.hidden = false;
+}
+
+/* 投票の送信 */
+function voteSendButtonOnClick(){
+  
+  /* 途中 画面切り替えテストのみ */
+  voteText.hidden = true;
+  setUpText.hidden = false;
+}
 
 function randoms(num, max) {
   //重複無しの乱数発生装置。これはテストプレイ用。完成時にはサーバーサイドで全プレイヤーに共通のものを渡す必要がある
@@ -142,6 +225,9 @@ function randoms(num, max) {
 // 紐付け
 answerButton.onclick = answerButtonOnClick;
 startButton.onclick = startButtonOnClick;
+entryButton.onclick = entryButtonOnClick;
+answerSendButton.onclick = answerSendButtonOnClick;
+voteSendButton.onclick = voteSendButtonOnClick;
 //imageOnClickはHTMLを書き込む時にHTML側に直接記述される
 
 /* こっちはデバッグ 
