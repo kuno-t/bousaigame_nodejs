@@ -140,19 +140,23 @@ $(function() { //着席処理
 
 /* 着席処理 */
 function entryButtonOnClick(){
-  socket.emit("sit_down", {name:nowPlayerName});
+  if(playerName.value.length === 0){ //文字列の長さが0、つまり何も書かれていないならアラート
+    window.alert("名前欄が空です");
+  } else {
+    socket.emit("sit_down", {name:nowPlayerName}); //そうでなければ着席リクエスト
+  }
 }
 
-socket.on("sit_down_error",function(data){
+socket.on("sit_down_error",function(data){ //満員ならアラート
   window.alert("満員です");
 });
 
-socket.on("c_sit_down",function(data){
-  playerNum = data.num;
+socket.on("c_sit_down",function(data){ //空いていたら着席するのでその情報を受け取る
   playerList = data.playerList;
   chair_controll(); //playerListからプレイヤー表示をする自作関数
   
   if(token == data.token){
+    playerNum = data.num;
     noEntryText.hidden = true;
     setUpText.hidden = false;
   }
