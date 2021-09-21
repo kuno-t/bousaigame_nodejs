@@ -44,13 +44,15 @@ var bousaiJSON; //JSONが入る
 var playerNum = -1; //初期値(未参加)なら-1
 var nowPlayerName = playerName.value; //名前入力欄
 var playerList = [];
+var tokenList = [];
+var scoreList = [];
 
-var token;
+var myToken;
 
 
 /* トークンの設定 */
 socket.on("token",function(data){
-  token = data.token;
+  myToken = data.token;
 });
 
 socket.on("setUpData",function(data){
@@ -125,6 +127,7 @@ playerName.addEventListener('focusout',(e) => { //名前欄からフォーカス
   console.log(nowPlayerName);
 });
 
+/* もう使わない
 $(function() { //着席処理
   $(".seat").on("click", function() {
     //着席ボタンで呼び出し
@@ -138,11 +141,14 @@ $(function() { //着席処理
   });
 });
 
+*/
+
 /* 着席処理 */
 function entryButtonOnClick(){
   if(playerName.value.length === 0){ //文字列の長さが0、つまり何も書かれていないならアラート
     window.alert("名前欄が空です");
   } else {
+    console.log("着席処理実行");
     socket.emit("sit_down", {name:nowPlayerName}); //そうでなければ着席リクエスト
   }
 }
@@ -152,10 +158,13 @@ socket.on("sit_down_error",function(data){ //満員ならアラート
 });
 
 socket.on("c_sit_down",function(data){ //空いていたら着席するのでその情報を受け取る
-  playerList = data.playerList;
+  playerList[data.num] = data.name;
+  tokenList[data.num] = data.token;
+  scoreList[data.num] = 0;
+    
   chair_controll(); //playerListからプレイヤー表示をする自作関数
   
-  if(token == data.token){
+  if(myToken == data.token){
     playerNum = data.num;
     noEntryText.hidden = true;
     setUpText.hidden = false;
@@ -179,10 +188,11 @@ socket.on("c_sit_down",function(data){
 
 function chair_controll(){ //参加者の椅子の制御
   for(let index = 0; index<5; index++){
-    var elem = playerList[index]; 
+    console.log(playerList[index]);
+    var memberName = playerList[index];
     if(index < playerList.length) {
-      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = elem;
-      console.log(index + ": " + elem);
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = memberName;
+      console.log(index + ": " + memberName);
     } else {
       displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = "空席";
     }

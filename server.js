@@ -22,15 +22,18 @@ var startAgree = 0
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
-  var name; //名前を用意
+  var Player; //プレイヤーオブジェクト
+  var name; //名前
+  var token; //トークン
+  /*var score; //スコア、 */
+  
   
   /*接続時にまずする処理*/
-  var token = makeToken(socket.id); //トークンを生成して
+  token = makeToken(socket.id); //トークンを生成して
   io.to(socket.id).emit("token", {token:token}); //接続してきた相手にだけ返す
   // これはhttps://blog.katsubemakito.net/nodejs/socketio/realtime-chat2を参考
   
   io.to(socket.id).emit("setUpData",{playerList: playerList}); //ゲームの状況を渡す
-  
   
   /*チャット*/
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
@@ -46,7 +49,19 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   socket.on("sit_down",function(data){
     if(playerList.length < 5){
       name = data.name;
-      playerList.push(name);
+      
+      /* オブジェクト作成(これを渡すのはうまくいかなかった)
+      
+      Player = {
+        name: name,
+        token: token,
+        score: 0
+      };
+      
+      */
+      
+      playerList.push(Player);
+      console.log(name);
       io.sockets.emit("c_sit_down",{ playerList:playerList, num: playerList.indexOf(name), token:token});
     } else {
       io.to(socket.id).emit("sit_down_error",{text:"満席"});
@@ -89,6 +104,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     io.sockets.emit("score_get_back", {playerScore: playerScore})
   });
   
+  /* 切断時 */
   socket.on('disconnect',() => { //切断時処理
     console.log( 'disconnect' );
     var index = playerList.indexOf(name);
