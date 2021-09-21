@@ -158,7 +158,7 @@ socket.on("sit_down_error",function(data){ //満員ならアラート
 });
 
 socket.on("c_sit_down",function(data){ //空いていたら着席するのでその情報を受け取る
-  playerList[data.num] = data.name;
+  playerList = data.playerList;
   tokenList[data.num] = data.token;
   scoreList[data.num] = 0;
     
@@ -188,11 +188,9 @@ socket.on("c_sit_down",function(data){
 
 function chair_controll(){ //参加者の椅子の制御
   for(let index = 0; index<5; index++){
-    console.log(playerList[index]);
-    var memberName = playerList[index];
     if(index < playerList.length) {
-      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = memberName;
-      console.log(index + ": " + memberName);
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = playerList[index];
+      console.log(index + ": " + playerList[index]);
     } else {
       displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = "空席";
     }

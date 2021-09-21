@@ -60,7 +60,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       
       */
       
-      playerList.push(Player);
+      playerList.push(name);
       console.log(name);
       io.sockets.emit("c_sit_down",{ playerList:playerList, num: playerList.indexOf(name), token:token});
     } else {
@@ -88,7 +88,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   /* リセット */
   socket.on("reset",function(data){
     startAgree = 0;
-    playerList = [false,false,false,false,false];
+    playerList = [];
       io.sockets.emit("reset");
   });
   
