@@ -18,7 +18,7 @@ const displayAnswer = [
   document.getElementById("displayAnswer5")
 ];
 
-var displayPlayerNameElement = [
+const displayPlayerNameElement = [
   document.getElementById("playerName1"),
   document.getElementById("playerName2"),
   document.getElementById("playerName3"),
@@ -26,7 +26,7 @@ var displayPlayerNameElement = [
   document.getElementById("playerName5")
 ];
 
-var votePlayerNameElement = [
+const votePlayerNameElement = [
   document.getElementById("votePlayerName1"),
   document.getElementById("votePlayerName2"),
   document.getElementById("votePlayerName3"),
@@ -34,7 +34,7 @@ var votePlayerNameElement = [
   document.getElementById("votePlayerName5")
 ];
 
-var displayVoteElement = [
+const displayVoteElement = [
   document.getElementById("displayVote1"),
   document.getElementById("displayVote2"),
   document.getElementById("displayVote3"),
@@ -47,13 +47,16 @@ const answerButton = document.getElementById("answerButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
+const voteSUM = 7; //投票時の合計得点数は暫定7
 const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
 var playerNum = -1; //初期値(未参加)なら-1
 var nowPlayerName = playerName.value; //名前入力欄
 var playerList = [];
 var tokenList = [];
-var scoreList = [];
+var scoreList = [0,0,0,0,0]; //現在プレイヤーが持つ得点。本当はプレイヤーリストと一緒にクラス化したいんだけど、空の配列に対してメンバを参照しようとしてしまって今のままだとうまくいかない……
+
+var voteList = [0,0,0,0,0]; //これから投票する得点を一時的に記録
 
 var myToken;
 
@@ -212,6 +215,47 @@ function answerSendButtonOnClick(){
   questionTextAndButton.hidden = true;
   voteText.hidden = false;
 }
+
+/* +に投票 */
+$(function(){
+  $(".upVote").on("click", function() {
+    var voteNum = $(this).attr("data-num")-1;
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
+      if(voteList[voteNum] < voteSUM){
+        voteList[voteNum] += 1;
+        console.log($(this).attr("data-num"),voteList);
+        displayVoteElement[voteNum].innerHTML = voteList[voteNum];
+      }
+      else { //合計点以上を投票しようとした時
+        window.alert(`合計${voteSUM}点以上は投票できません`)
+      }
+    }
+    else{
+      window.alert("自分には投票できません");
+    }
+  });
+});
+
+/* -に投票 */
+$(function(){
+  $(".downVote").on("click", function() {
+    var voteNum = $(this).attr("data-num")-1;
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
+      if(voteList[voteNum] > 0){
+        voteList[voteNum] -= 1;
+        console.log($(this).attr("data-num"),voteList);
+        displayVoteElement[voteNum].innerHTML = voteList[voteNum];
+      }
+      else { //0点のとき
+        window.alert("0点より低い点は投票できません")
+      }
+    }
+    else{
+      window.alert("自分には投票できません");
+    }
+  });
+});
+
 
 /* 投票の送信 */
 function voteSendButtonOnClick(){
