@@ -16,7 +16,8 @@ app.use(express.static(__dirname + "/public"));
 
 /*プレイヤー管理変数*/
 var playerList = [];
-var playerScore = [0,0,0,0,0]; //スコア集計で参照中。ここはプレイヤーを構造化すべきかも
+var scoreList = [0,0,0,0,0]; //スコア集計で参照中。プレイヤーのクラス化はうまくいかなかった
+var tokenList = [];
 
 var startAgree = 0
 
@@ -60,9 +61,11 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       
       */
       
-      playerList.push(name);
+      tokenList.push(token);
+      playerList[tokenList.indexOf(token)] = name;
+      
       console.log(name);
-      io.sockets.emit("c_sit_down",{ playerList:playerList, num: playerList.indexOf(name), token:token});
+      io.sockets.emit("c_sit_down",{ playerList:playerList, num: tokenList.indexOf(token), token:token});
     } else {
       io.to(socket.id).emit("sit_down_error",{text:"満席"});
     }
@@ -95,22 +98,23 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   /* スコア集計 */
   socket.on("score_set",function(data){ //
     for(let i = 0; i < 5; i++){
-      playerScore[i] += data.score[i]; //(仮)
+      scoreList[i] += data.score[i]; //(仮)
     };
   });
   
   /* スコア表示 */
   socket.on("score_get",function(data){ //
-    io.sockets.emit("score_get_back", {playerScore: playerScore})
+    io.sockets.emit("score_get_back", {scoreList: scoreList})
   });
   
   /* 切断時 */
   socket.on('disconnect',() => { //切断時処理
     console.log( 'disconnect' );
-    var index = playerList.indexOf(name);
+    var index = tokenList.indexOf(token);
     playerList.splice(index,1);
+    tokenList.splice(index,1);
     io.sockets.emit("server_to_client", { name: name, value: 'someone is disconnected.'});
-    io.sockets.emit("c_sit_down",{ playerList:playerList, num: playerList.indexOf(name)});
+    io.sockets.emit("c_sit_down",{ playerList:playerList, num: tokenList.indexOf(token),token:token});
   });
   
 });

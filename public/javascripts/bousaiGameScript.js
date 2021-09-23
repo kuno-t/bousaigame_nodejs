@@ -34,6 +34,14 @@ var votePlayerNameElement = [
   document.getElementById("votePlayerName5")
 ];
 
+var displayVoteElement = [
+  document.getElementById("displayVote1"),
+  document.getElementById("displayVote2"),
+  document.getElementById("displayVote3"),
+  document.getElementById("displayVote4"),
+  document.getElementById("displayVote5"),
+];
+
 const answerTextArea = document.getElementById("answerTextArea"); 
 const answerButton = document.getElementById("answerButton");
 const seat = document.getElementsByClassName("seat");
