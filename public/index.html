@@ -15,16 +15,76 @@
   </head>
   <body>
     
-    <button class="warningButton" id="resetbutton"> リセットボタン </button>
+    <button class="warningButton" id="resetbutton"> リセットボタン（未機能） </button>
       
-    <div class="questionContainer">
-      <div class="question" id="questionText">
-        現在、待機中です。<br />
-        新たにゲームを開始したい場合は、<br />
-        下の開始ボタンを押してみてください。<br />
-        参加者が全員開始ボタンを押すことで、<br />
-        ゲームが始まります。<br />
-        <button id="startButton" type="button">開始</button>
+    <div class="infomationContainer">
+      <div class="textContainer">
+        <div class="infomationText" id="noEntryText">
+          現在、未参加です。<br />
+          ゲームに参加したい場合は、<br />
+          名前を入力して下の着席ボタンを押してください。<br />
+          <input type="text" name="name" id="playerName" placeholder="名前欄"><br />
+          <button id="entryButton" type="button">着席</button>
+        </div>
+        
+        <!-- > 待機中 < -->
+        <div class="infomationText" id="setUpText" hidden="hidden">
+          現在、待機中です。<br />
+          ゲームを開始したい場合は、<br />
+          下の開始ボタンを押してください。<br />
+          参加者が全員開始ボタンを押すことで、<br />
+          ゲームが始まります。<br />
+          <button id="startButton" type="button">開始</button>
+        </div>
+        
+        <!-- > ゲーム開始後：ここに問題文 < -->
+        <div class="infomationText" id="questionTextAndButton" hidden="hidden">
+          <div id="questionText"></div>
+          <button class='send_OK_button' id='answerSendButton'>送信確定</button>
+        </div>
+        
+        <!-- > 投票時 < -->
+        <div class="infomationText" id="voteText" ><!-- hidden="hidden" -->
+          
+          <div class="vote" id="votePlayer1">
+            <span id="votePlayerName1">空席</span>
+            <button id="downVote1" class="downVote" type="button" data-num="1">-</button>
+            <span id="displayVote1">0</span>
+            <button id="upVote1" class="upVote" type="button" data-num="1">+</button>
+          </div>
+          
+          <div class="vote" id="votePlayer2">
+            <span id="votePlayerName2">空席</span>
+            <button id="downVote2" class="downVote" type="button" data-num="2">-</button>
+            <span id="displayVote2">0</span>
+            <button id="upVote2" class="upVote" type="button" data-num="2">+</button>
+          </div>
+          
+          <div class="vote" id="votePlayer3">
+            <span id="votePlayerName3">空席</span>
+            <button id="downVote3" class="downVote" type="button" data-num="3">-</button>
+            <span id="displayVote3">0</span>
+            <button id="upVote3" class="upVote" type="button" data-num="3">+</button>
+          </div>
+          
+          <div class="vote" id="votePlayer4">
+            <span id="votePlayerName4">空席</span>
+            <button id="downVote4" class="downVote" type="button" data-num="4">-</button>
+            <span id="displayVote4">0</span>
+            <button id="upVote4" class="upVote" type="button" data-num="4">+</button>
+          </div>
+          
+          <div class="vote" id="votePlayer5">
+            <span id="votePlayerName5">空席</span>
+            <button id="downVote5" class="downVote" type="button" data-num="5">-</button>
+            <span id="displayVote5">0</span>
+            <button id="upVote5" class="upVote" type="button" data-num="5">+</button>
+          </div>
+          
+          <button id="voteSendButton" type="button">決定</button>
+          
+        </div>
+        
       </div>
       <div class="choicesImageContainer">
         <div class="choicesImageFrame" id="imageFrame1"></div>
@@ -33,43 +93,63 @@
       </div>
 
       <div class="answer">
-        <input type="text" name="name" id="playerName" value="プレイヤーネーム"><br >
         <textarea
           id="answerTextArea"
           cols="50"
           rows="5"
-          placeholder="ここに入力"
+          placeholder="回答はここに入力"
         ></textarea
         ><br />
         <button id="answerButton" type="button">送信</button>
       </div>
     </div>
     <div class="displayAnswerContainer">
-      <div class="displayAnswer" id="displayAnswer1">
-        <div id="playerName1">空席</div><button class="seat" id="seat1" data-num="1" type="button">
-          着席</button
-        ><br />
+      
+      <div class="displayAnswerInfo" id="displayAnswerInfo1">
+        <span id="playerName1">空席</span>: <span id="player1Score">0</span>
+        <!-- <button class="seat" id="seat1" data-num="1" type="button">
+          着席</button><br /> -->
+        <div class="displayAnswer" id="displayAnswer1">
+         
+        </div>
       </div>
-      <div class="displayAnswer" id="displayAnswer2">
-        <div id="playerName2">空席</div><button class="seat" id="seat2" data-num="2" type="button">
-          着席</button
-        ><br />
+      
+      <div class="displayAnswerInfo" id="displayAnswerInfo2">
+        <span id="playerName2">空席</span>: <span id="player2Score">0</span>
+        <!--  <button class="seat" id="seat2" data-num="2" type="button">
+          着席</button><br /> -->
+        <div class="displayAnswer" id="displayAnswer2">
+        
+        </div>
       </div>
-      <div class="displayAnswer" id="displayAnswer3">
-        <div id="playerName3">空席</div><button class="seat" id="seat3" data-num="3" type="button">
-          着席</button
-        ><br />
+
+      <div class="displayAnswerInfo" id="displayAnswerInfo3">
+        <span id="playerName3">空席</span>: <span id="player3Score">0</span>
+        <!--  <button class="seat" id="seat3" data-num="3" type="button">
+          着席</button><br /> -->
+        <div class="displayAnswer" id="displayAnswer3">
+          
+        </div>
       </div>
-      <div class="displayAnswer" id="displayAnswer4">
-        <div id="playerName4">空席</div><button class="seat" id="seat4" data-num="4" type="button">
-          着席</button
-        ><br />
+      
+      <div class="displayAnswerInfo" id="displayAnswerInfo4">
+        <span id="playerName4">空席</span>: <span id="player4Score">0</span>
+         <!-- <button class="seat" id="seat4" data-num="4" type="button">
+          着席</button><br /> -->
+        <div class="displayAnswer" id="displayAnswer4">
+          
+        </div>
       </div>
-      <div class="displayAnswer" id="displayAnswer5">
-        <div id="playerName5">空席</div><button class="seat" id="seat5" data-num="5" type="button">
-          着席</button
-        ><br />
+      
+      <div class="displayAnswerInfo" id="displayAnswerInfo5">
+        <span id="playerName5">空席</span>: <span id="player5Score">0</span>
+         <!-- <button class="seat" id="seat5" data-num="5" type="button">
+          着席</button><br /> -->
+        <div class="displayAnswer" id="displayAnswer5">
+          
+        </div>
       </div>
+      
     </div>
 
     <script

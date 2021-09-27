@@ -1,5 +1,15 @@
+/* 要素の紐付け */
+const noEntryText = document.getElementById("noEntryText");
+const setUpText = document.getElementById("setUpText");
+const questionTextAndButton = document.getElementById("questionTextAndButton");
 const questionText = document.getElementById("questionText");
+const voteText = document.getElementById("voteText");
+
+const entryButton = document.getElementById("entryButton");
 const startButton = document.getElementById("startButton");
+const answerSendButton = document.getElementById("answerSendButton");
+const voteSendButton = document.getElementById("voteSendButton");
+
 const displayAnswer = [
   document.getElementById("displayAnswer1"),
   document.getElementById("displayAnswer2"),
@@ -8,7 +18,7 @@ const displayAnswer = [
   document.getElementById("displayAnswer5")
 ];
 
-var displayPlayerNameElement = [
+const displayPlayerNameElement = [
   document.getElementById("playerName1"),
   document.getElementById("playerName2"),
   document.getElementById("playerName3"),
@@ -16,17 +26,58 @@ var displayPlayerNameElement = [
   document.getElementById("playerName5")
 ];
 
+const displayScoreElement = [
+  document.getElementById("player1Score"),
+  document.getElementById("player2Score"),
+  document.getElementById("player3Score"),
+  document.getElementById("player4Score"),
+  document.getElementById("player5Score"),
+];
+
+const votePlayerNameElement = [
+  document.getElementById("votePlayerName1"),
+  document.getElementById("votePlayerName2"),
+  document.getElementById("votePlayerName3"),
+  document.getElementById("votePlayerName4"),
+  document.getElementById("votePlayerName5")
+];
+
+const displayVoteElement = [
+  document.getElementById("displayVote1"),
+  document.getElementById("displayVote2"),
+  document.getElementById("displayVote3"),
+  document.getElementById("displayVote4"),
+  document.getElementById("displayVote5"),
+];
+
 const answerTextArea = document.getElementById("answerTextArea"); 
 const answerButton = document.getElementById("answerButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
-const dataUrl = "json/bousaiGameData.json";
+const voteSUM = 7; //投票時の合計得点数は暫定7
+const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
-var playerNum = -1;
-var nowPlayerName = playerName.value; //あとで別ページで入力させたものを呼び出すか、もしくは名前入力欄を作る
-var playerList = [false,false,false,false,false];
+var playerNum = -1; //初期値(未参加)なら-1
+var nowPlayerName = playerName.value; //名前入力欄
+var playerList = [];
+var tokenList = [];
+var scoreList = [0,0,0,0,0]; //現在プレイヤーが持つ得点。本当はプレイヤーリストと一緒にクラス化したいんだけど、空の配列に対してメンバを参照しようとしてしまって今のままだとうまくいかない……
 
+var voteList = [0,0,0,0,0]; //これから投票する得点を一時的に記録
+
+var myToken;
+
+
+/* トークンの設定 */
+socket.on("token",function(data){
+  myToken = data.token;
+});
+
+socket.on("setUpData",function(data){
+  playerList = data.playerList;
+  chair_controll(); //playerListからプレイヤー表示をする自作関数
+});
 
 //関数
 function answerButtonOnClick() {
@@ -39,18 +90,19 @@ function answerButtonOnClick() {
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
-  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum}); //サーバーに送る
+  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum, name:nowPlayerName}); //サーバーに送る
 }
 
 socket.on("server_to_client_text",function(data){ //サーバーから受け取る
-  displayAnswer[data.number].innerHTML += "<br>" + nowPlayerName + ":<br>" + data.html; //HTMLとして出力
+  displayAnswer[data.number].innerHTML += data.name + ":<br>" + data.html　+　"<br>"; //HTMLとして出力
   displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
 });
 
 /* ゲームスタート */
 function startButtonOnClick() {
+  
   $.getJSON(dataUrl, bousaiJSON => {
-    let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める
+    let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める予定
     let imageList = bousaiJSON.question[Qnum].image;
     let image = [];
     let numList = randoms(choiceNum, imageList.length); //完成時にはサーバーサイドから受け取る
@@ -64,8 +116,12 @@ function startButtonOnClick() {
 }
 
 socket.on("s_to_c_question",function(data){
+  
+  setUpText.hidden = true;
+  questionTextAndButton.hidden = false; //表示テキストの切り替え
+  
   $.getJSON(dataUrl,bousaiJSON =>{
-    questionText.innerHTML = bousaiJSON.question[data.Qnum].text + "<button id='send'>送信確定</button>";
+    questionText.innerHTML = bousaiJSON.question[data.Qnum].text;
     for (var i = 0; i < choiceNum; i++) {
       document.getElementById(`imageFrame${i + 1}`).innerHTML = `<img src="${
         data.image[i].src
@@ -75,6 +131,9 @@ socket.on("s_to_c_question",function(data){
     }
   });
 });
+
+
+
 
 function imageOnClick(imageId) {
   //画像クリック時呼び出し
@@ -87,6 +146,7 @@ playerName.addEventListener('focusout',(e) => { //名前欄からフォーカス
   console.log(nowPlayerName);
 });
 
+/* もう使わない
 $(function() { //着席処理
   $(".seat").on("click", function() {
     //着席ボタンで呼び出し
@@ -100,6 +160,37 @@ $(function() { //着席処理
   });
 });
 
+*/
+
+/* 着席処理 */
+function entryButtonOnClick(){
+  if(playerName.value.length === 0){ //文字列の長さが0、つまり何も書かれていないならアラート
+    window.alert("名前欄が空です");
+  } else {
+    console.log("着席処理実行");
+    socket.emit("sit_down", {name:nowPlayerName}); //そうでなければ着席リクエスト
+  }
+}
+
+socket.on("sit_down_error",function(data){ //満員ならアラート
+  window.alert("満員です");
+});
+
+socket.on("c_sit_down",function(data){ //空いていたら着席するのでその情報を受け取る
+  playerList = data.playerList;
+  tokenList[data.num] = data.token;
+  scoreList[data.num] = 0;
+    
+  chair_controll(); //playerListからプレイヤー表示をする自作関数
+  
+  if(myToken == data.token){
+    playerNum = data.num;
+    noEntryText.hidden = true;
+    setUpText.hidden = false;
+  }
+});
+
+/* //古いバージョン
 socket.on("c_sit_down",function(data){
   displayPlayerNameElement[data.num].innerHTML = playerList[data.num] = data.name; //名前を表示しつつプレイヤーリストに保持
   document.getElementById(`seat${data.num + 1}`).disabled = true; //着席したらボタンを非活性化
@@ -111,6 +202,109 @@ socket.on("c_sit_down",function(data){
   } //初めての着席じゃなければ、前に座っていた席を空席にしてボタンを活性化
   
   console.log(playerList);
+});
+*/
+
+function chair_controll(){ //参加者の椅子の制御
+  for(let index = 0; index<5; index++){
+    if(index < playerList.length) {
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = playerList[index];
+      console.log(index + ": " + playerList[index]);
+    } else {
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = "空席";
+    }
+  }
+}
+
+/* 回答の送信 */
+function answerSendButtonOnClick(){
+  
+  /* 途中 */
+  questionTextAndButton.hidden = true;
+  voteText.hidden = false;
+}
+
+/* +に投票 */
+$(function(){
+  $(".upVote").on("click", function() {
+    var voteNum = $(this).attr("data-num")-1;
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
+      if($(this).attr("data-num") <= playerList.length){
+        console.log(`${voteNum},${playerList.length}`);
+        if(voteList[voteNum] < voteSUM){ //合計点以上でないか
+          voteList[voteNum] += 1;
+          console.log($(this).attr("data-num"),voteList);
+          displayVoteElement[voteNum].innerHTML = voteList[voteNum];
+        }
+        else { //合計点以上を投票しようとした時
+          window.alert(`合計${voteSUM}点以上は投票できません`)
+        }
+      } else {
+        window.alert("空席には投票できません");
+      }
+    }
+    else{
+      window.alert("自分には投票できません");
+    }
+  });
+});
+
+/* -に投票 */
+$(function(){
+  $(".downVote").on("click", function() {
+    var voteNum = $(this).attr("data-num")-1;
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
+      if(voteList[voteNum] > 0){
+        voteList[voteNum] -= 1;
+        console.log($(this).attr("data-num"),voteList);
+        displayVoteElement[voteNum].innerHTML = voteList[voteNum];
+      }
+      else { //0点のとき
+        window.alert("0点より低い点は投票できません")
+      }
+    }
+    else{
+      window.alert("自分には投票できません");
+    }
+  });
+});
+
+
+/* 投票の送信 */
+function voteSendButtonOnClick(){
+  
+  if(voteSUM == voteList.reduce((sum, element) => sum + element, 0) || true){ //配列が合計七なら実行
+    socket.emit("score_set",{voteList: voteList});
+    console.log("send");  
+    
+    voteList = [0,0,0,0,0];
+  } else {
+    window.alert(`合計${voteSUM}点になるように割り振ってください`);
+  }
+}
+
+socket.on("score_get_back", function(data){
+  voteText.hidden = true;
+  setUpText.hidden = false;
+  scoreList = data.scoreList;
+  
+  for(let index=0; index<5; index++){
+     if(index < playerList.length) {
+      displayScoreElement[index].innerHTML = scoreList[index];
+      console.log(playerList[index] + ":" + scoreList[index]);
+    } else {
+      displayScoreElement[index].innerHTML = 0;
+    }
+  }
+});
+
+
+/* 切断時処理 */
+socket.on("somebody_disconnected",function(data){
+  playerList = data.playerList;
+  tokenList = data.tokenList;
+  scoreList = data.scoreList;
+  chair_controll();
 });
 
 function randoms(num, max) {
@@ -137,6 +331,9 @@ function randoms(num, max) {
 // 紐付け
 answerButton.onclick = answerButtonOnClick;
 startButton.onclick = startButtonOnClick;
+entryButton.onclick = entryButtonOnClick;
+answerSendButton.onclick = answerSendButtonOnClick;
+voteSendButton.onclick = voteSendButtonOnClick;
 //imageOnClickはHTMLを書き込む時にHTML側に直接記述される
 
 /* こっちはデバッグ 
