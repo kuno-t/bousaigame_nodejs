@@ -28,6 +28,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   var Player; //プレイヤーオブジェクト
   var name; //名前
   var token; //トークン
+  var agree; //賛成かどうか
   /*var score; //スコア、 */
   
   
@@ -53,22 +54,25 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     if(playerList.length < 5){
       name = data.name;
       
-      /* オブジェクト作成(これを渡すのはうまくいかなかった)
-      
+      /* オブジェクト作成 */
       Player = {
         name: name,
         token: token,
-        score: 0
+        score: 0,
+        agree: false
       };
       
-      */
+      playerList.push(Player);
+      console.log(playerList);
       
-      tokenList.push(token);
-      playerList[tokenList.indexOf(token)] = name;
+      var num = -1;
+      for(let index=0; index < playerList.length; index++){
+        let playerBuffer = playerList[index];
+        console.log(playerBuffer);
+        if(token == playerBuffer){ num = index }
+      }
       
-      
-      console.log(name);
-      io.sockets.emit("c_sit_down",{ playerList:playerList, num: tokenList.indexOf(token), token:token});
+      io.sockets.emit("c_sit_down",{ playerList:playerList, num: num, token:token});
     } else {
       io.to(socket.id).emit("sit_down_error",{text:"満席"});
     }

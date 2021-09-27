@@ -180,6 +180,8 @@ socket.on("c_sit_down",function(data){ //空いていたら着席するのでそ
   playerList = data.playerList;
   tokenList[data.num] = data.token;
   scoreList[data.num] = 0;
+  
+  console.log(playerList,data.num);
     
   chair_controll(); //playerListからプレイヤー表示をする自作関数
   
@@ -208,8 +210,8 @@ socket.on("c_sit_down",function(data){
 function chair_controll(){ //参加者の椅子の制御
   for(let index = 0; index<5; index++){
     if(index < playerList.length) {
-      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = playerList[index];
-      console.log(index + ": " + playerList[index]);
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = playerList[index].name;
+      console.log(index + ": " + JSON.stringify(playerList[index]));
     } else {
       displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = "空席";
     }
@@ -291,7 +293,7 @@ socket.on("score_get_back", function(data){
   for(let index=0; index<5; index++){
      if(index < playerList.length) {
       displayScoreElement[index].innerHTML = scoreList[index];
-      console.log(playerList[index] + ":" + scoreList[index]);
+      console.log(playerList[index].name + ":" + scoreList[index]);
     } else {
       displayScoreElement[index].innerHTML = 0;
     }
