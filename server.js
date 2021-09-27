@@ -19,7 +19,9 @@ var playerList = [];
 var scoreList = [0,0,0,0,0]; //スコア集計で参照中。プレイヤーのクラス化はうまくいかなかった
 var tokenList = [];
 
-var startAgree = 0
+var startAgree = 0; //全員OK?
+var voteAgree = 0; //投票について
+var voteList = [0,0,0,0,0];
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
@@ -64,6 +66,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       tokenList.push(token);
       playerList[tokenList.indexOf(token)] = name;
       
+      
       console.log(name);
       io.sockets.emit("c_sit_down",{ playerList:playerList, num: tokenList.indexOf(token), token:token});
     } else {
@@ -83,7 +86,8 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   /* 開始処理 */
   socket.on("game_start",function(data){
   startAgree += 1;
-    if(startAgree >= playerList.filter(n => n == true).length ){
+    if(startAgree >= playerList.length && playerList.length >= 3){
+      startAgree = 0;
       io.sockets.emit("all_agree",{num: data.num, name:data.name});
     }
   });
@@ -92,29 +96,35 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   socket.on("reset",function(data){
     startAgree = 0;
     playerList = [];
-      io.sockets.emit("reset");
+    io.sockets.emit("reset");
   });
   
   /* スコア集計 */
   socket.on("score_set",function(data){ //
     for(let i = 0; i < 5; i++){
-      scoreList[i] += data.score[i]; //(仮)
-    };
-  });
-  
-  /* スコア表示 */
-  socket.on("score_get",function(data){ //
-    io.sockets.emit("score_get_back", {scoreList: scoreList})
+      voteList[i] += data.voteList[i]; //(仮)
+    }
+    voteAgree += 1;
+    
+    if(voteAgree >= playerList.length){
+      voteAgree = 0;
+      for(let i = 0; i < 5; i++){
+        scoreList[i] += voteList[i]; //(仮)
+      }
+      io.sockets.emit("score_get_back", {scoreList: scoreList})
+    }
   });
   
   /* 切断時 */
-  socket.on('disconnect',() => { //切断時処理
+  socket.on('disconnect',() => { //切断時処理。タブを切り替えただけで切れちゃうのでちょっと対処法を考え中。
     console.log( 'disconnect' );
     var index = tokenList.indexOf(token);
     playerList.splice(index,1);
     tokenList.splice(index,1);
+    scoreList.splice(index,1);
+    if(scoreList.length < 5){scoreList.push(0);}
     io.sockets.emit("server_to_client", { name: name, value: 'someone is disconnected.'});
-    io.sockets.emit("c_sit_down",{ playerList:playerList, num: tokenList.indexOf(token),token:token});
+    io.sockets.emit("somebody_disconnected",{ playerList:playerList, num: tokenList.indexOf(token), token: token, tokenList: tokenList, scoreList: scoreList});
   });
   
 });

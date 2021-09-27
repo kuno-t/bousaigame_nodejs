@@ -26,6 +26,14 @@ const displayPlayerNameElement = [
   document.getElementById("playerName5")
 ];
 
+const displayScoreElement = [
+  document.getElementById("player1Score"),
+  document.getElementById("player2Score"),
+  document.getElementById("player3Score"),
+  document.getElementById("player4Score"),
+  document.getElementById("player5Score"),
+];
+
 const votePlayerNameElement = [
   document.getElementById("votePlayerName1"),
   document.getElementById("votePlayerName2"),
@@ -221,13 +229,18 @@ $(function(){
   $(".upVote").on("click", function() {
     var voteNum = $(this).attr("data-num")-1;
     if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
-      if(voteList[voteNum] < voteSUM){
-        voteList[voteNum] += 1;
-        console.log($(this).attr("data-num"),voteList);
-        displayVoteElement[voteNum].innerHTML = voteList[voteNum];
-      }
-      else { //合計点以上を投票しようとした時
-        window.alert(`合計${voteSUM}点以上は投票できません`)
+      if($(this).attr("data-num") <= playerList.length){
+        console.log(`${voteNum},${playerList.length}`);
+        if(voteList[voteNum] < voteSUM){ //合計点以上でないか
+          voteList[voteNum] += 1;
+          console.log($(this).attr("data-num"),voteList);
+          displayVoteElement[voteNum].innerHTML = voteList[voteNum];
+        }
+        else { //合計点以上を投票しようとした時
+          window.alert(`合計${voteSUM}点以上は投票できません`)
+        }
+      } else {
+        window.alert("空席には投票できません");
       }
     }
     else{
@@ -260,10 +273,39 @@ $(function(){
 /* 投票の送信 */
 function voteSendButtonOnClick(){
   
-  /* 途中 画面切り替えテストのみ */
+  if(voteSUM == voteList.reduce((sum, element) => sum + element, 0) || true){ //配列が合計七なら実行
+    socket.emit("score_set",{voteList: voteList});
+    console.log("send");  
+    
+    voteList = [0,0,0,0,0];
+  } else {
+    window.alert(`合計${voteSUM}点になるように割り振ってください`);
+  }
+}
+
+socket.on("score_get_back", function(data){
   voteText.hidden = true;
   setUpText.hidden = false;
-}
+  scoreList = data.scoreList;
+  
+  for(let index=0; index<5; index++){
+     if(index < playerList.length) {
+      displayScoreElement[index].innerHTML = scoreList[index];
+      console.log(playerList[index] + ":" + scoreList[index]);
+    } else {
+      displayScoreElement[index].innerHTML = 0;
+    }
+  }
+});
+
+
+/* 切断時処理 */
+socket.on("somebody_disconnected",function(data){
+  playerList = data.playerList;
+  tokenList = data.tokenList;
+  scoreList = data.scoreList;
+  chair_controll();
+});
 
 function randoms(num, max) {
   //重複無しの乱数発生装置。これはテストプレイ用。完成時にはサーバーサイドで全プレイヤーに共通のものを渡す必要がある
