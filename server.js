@@ -99,7 +99,12 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   /* リセット */
   socket.on("reset",function(data){
     startAgree = 0;
+    voteAgree = 0;
     playerList = [];
+    tokenList = [];
+    scoreList = [0,0,0,0,0];
+    voteList = [0,0,0,0,0];
+    
     io.sockets.emit("reset");
   });
   
