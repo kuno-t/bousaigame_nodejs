@@ -61,10 +61,15 @@ body {
 }
 
 .displayAnswer{
+    background: #FFFFFF;
     overflow: auto;
     width: 100%;
     height: 80%;
     border: 1px solid #EEEEEE;
+}
+
+.answerTextHTML{
+  color: red;
 }
 
 .displayAnswerContainer{

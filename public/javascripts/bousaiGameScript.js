@@ -51,7 +51,7 @@ const displayVoteElement = [
 ];
 
 const answerTextArea = document.getElementById("answerTextArea"); 
-const answerButton = document.getElementById("answerButton");
+const chatButton = document.getElementById("chatButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
@@ -80,7 +80,7 @@ socket.on("setUpData",function(data){
 });
 
 //関数
-function answerButtonOnClick() {
+function chatButtonOnClick() {
   //テキスト欄からの書き込みを行う
   if (playerNum === -1) {
     window.alert("まだ着席していません");
@@ -102,20 +102,12 @@ socket.on("server_to_client_text",function(data){ //サーバーから受け取�
 function startButtonOnClick() {
   
   $.getJSON(dataUrl, bousaiJSON => {
-    let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。完成時にはサーバーサイドで決める予定
-    let imageList = bousaiJSON.question[Qnum].image;
-    let image = [];
-    let numList = randoms(choiceNum, imageList.length); //完成時にはサーバーサイドから受け取る
-    for (let i = 0; i < choiceNum; i++) {
-      //画像を規定の数選ぶ。choiceNumは定数で一括変更可能。
-      image[i] = imageList[numList[i]]; //image決定
-    }
-    console.log(image);
-    socket.emit("c_to_s_question", {question:Qnum, image:image});
+    console.log(JSON.stringify(bousaiJSON));
+    socket.emit("game_start", {bousaiJSON: bousaiJSON});
   });
 }
 
-socket.on("s_to_c_question",function(data){
+socket.on("all_agree",function(data){
   
   setUpText.hidden = true;
   questionTextAndButton.hidden = false; //表示テキストの切り替え
@@ -221,16 +213,31 @@ function chair_controll(){ //参加者の椅子の制御
 /* 回答の送信 */
 function answerSendButtonOnClick(){
   
-  /* 途中 */
+  let answerText = answerTextArea.value; //テキストを読み取る
+  let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
+  answerTextArea.value = ""; //テキストエリアをクリア
+  console.log(answerText);
+  socket.emit("answerSend", {html:answerTextHTML, playerToken:myToken, num:playerNum}); //サーバーに送る
+}
+
+socket.on("answerOpen",function(data){
+  let HTML;
+  let index;
+  data.answerHTMLList.forEach(function(HTML,index){
+    console.log(index,HTML);
+    displayAnswer[index].innerHTML +="<span class='answerTextHTML'>" + HTML +　"</span><br>"; //HTMLとして出力
+    displayAnswer[index].scrollTop = displayAnswer[index].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
+  });
+
   questionTextAndButton.hidden = true;
   voteText.hidden = false;
-}
+});
 
 /* +に投票 */
 $(function(){
   $(".upVote").on("click", function() {
     var voteNum = $(this).attr("data-num")-1;
-    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
+    if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
       if($(this).attr("data-num") <= playerList.length){
         console.log(`${voteNum},${playerList.length}`);
         if(voteList[voteNum] < voteSUM){ //合計点以上でないか
@@ -275,8 +282,8 @@ $(function(){
 /* 投票の送信 */
 function voteSendButtonOnClick(){
   
-  if(voteSUM == voteList.reduce((sum, element) => sum + element, 0) || true){ //配列が合計七なら実行
-    socket.emit("score_set",{voteList: voteList});
+  if(voteSUM == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
+    socket.emit("score_set",{voteList: voteList, playerToken:myToken});
     console.log("send");  
     
     voteList = [0,0,0,0,0];
@@ -291,7 +298,10 @@ socket.on("score_get_back", function(data){
   scoreList = data.scoreList;
   
   for(let index=0; index<5; index++){
-     if(index < playerList.length) {
+    
+    displayVoteElement[index].innerHTML = 0;
+    
+    if(index < playerList.length) {
       displayScoreElement[index].innerHTML = scoreList[index];
       console.log(playerList[index].name + ":" + scoreList[index]);
     } else {
@@ -309,29 +319,10 @@ socket.on("somebody_disconnected",function(data){
   chair_controll();
 });
 
-function randoms(num, max) {
-  //重複無しの乱数発生装置。これはテストプレイ用。完成時にはサーバーサイドで全プレイヤーに共通のものを渡す必要がある
-  console.log(num, max);
-  var randoms = [];
-  var tmp;
-  var i = 0;
-  while (i < 100) {
-    tmp = Math.floor(Math.random() * max);
-    // console.log(tmp);
-    if (!randoms.includes(tmp)) {
-      randoms.push(tmp);
-    }
-    if (randoms.length >= num) {
-      break;
-    }
-    i++;
-  }
-  console.log(randoms);
-  return randoms;
-}
+
 
 // 紐付け
-answerButton.onclick = answerButtonOnClick;
+chatButton.onclick = chatButtonOnClick;
 startButton.onclick = startButtonOnClick;
 entryButton.onclick = entryButtonOnClick;
 answerSendButton.onclick = answerSendButtonOnClick;
