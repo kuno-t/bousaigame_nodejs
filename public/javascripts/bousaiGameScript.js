@@ -4,11 +4,15 @@ const setUpText = document.getElementById("setUpText");
 const questionTextAndButton = document.getElementById("questionTextAndButton");
 const questionText = document.getElementById("questionText");
 const voteText = document.getElementById("voteText");
+const scoreText = document.getElementById("scoreText");
+const stepText = document.getElementById("stepText");
 
 const entryButton = document.getElementById("entryButton");
 const startButton = document.getElementById("startButton");
 const answerSendButton = document.getElementById("answerSendButton");
 const voteSendButton = document.getElementById("voteSendButton");
+const nextGameButton = document.getElementById("nextGameButton");
+const resetButton = document.getElementById("resetButton");
 
 const displayAnswer = [
   document.getElementById("displayAnswer1"),
@@ -50,12 +54,30 @@ const displayVoteElement = [
   document.getElementById("displayVote5"),
 ];
 
+const scoreText_PlayerNameElement = [
+  document.getElementById("scoreText_PlayerName1"),
+  document.getElementById("scoreText_PlayerName2"),
+  document.getElementById("scoreText_PlayerName3"),
+  document.getElementById("scoreText_PlayerName4"),
+  document.getElementById("scoreText_PlayerName5"),
+];
+
+const scoreText_scoreElement = [
+  document.getElementById("scoreText_score1"),
+  document.getElementById("scoreText_score2"),
+  document.getElementById("scoreText_score3"),
+  document.getElementById("scoreText_score4"),
+  document.getElementById("scoreText_score5"),
+];
+
 const answerTextArea = document.getElementById("answerTextArea"); 
 const chatButton = document.getElementById("chatButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
 const voteSUM = 7; //投票時の合計得点数は暫定7
+const maxStep = 1; //最大問題回数
+var step = 0; //現在のステップ
 const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
 var playerNum = -1; //初期値(未参加)なら-1
@@ -110,7 +132,11 @@ function startButtonOnClick() {
 socket.on("all_agree",function(data){
   
   setUpText.hidden = true;
+  scoreText.hidden = true;
   questionTextAndButton.hidden = false; //表示テキストの切り替え
+  
+  step = data.step;
+  stepText.innerHTML = `${step}/${maxStep}`;
   
   $.getJSON(dataUrl,bousaiJSON =>{
     questionText.innerHTML = bousaiJSON.question[data.Qnum].text;
@@ -202,10 +228,10 @@ socket.on("c_sit_down",function(data){
 function chair_controll(){ //参加者の椅子の制御
   for(let index = 0; index<5; index++){
     if(index < playerList.length) {
-      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = playerList[index].name;
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = scoreText_PlayerNameElement[index].innerHTML = playerList[index].name;
       console.log(index + ": " + JSON.stringify(playerList[index]));
     } else {
-      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = "空席";
+      displayPlayerNameElement[index].innerHTML = votePlayerNameElement[index].innerHTML = scoreText_PlayerNameElement[index].innerHTML = "空席";
     }
   }
 }
@@ -262,7 +288,7 @@ $(function(){
 $(function(){
   $(".downVote").on("click", function() {
     var voteNum = $(this).attr("data-num")-1;
-    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
+    if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
       if(voteList[voteNum] > 0){
         voteList[voteNum] -= 1;
         console.log($(this).attr("data-num"),voteList);
@@ -287,6 +313,8 @@ function voteSendButtonOnClick(){
     console.log("send");  
     
     voteList = [0,0,0,0,0];
+    voteSendButton.innerHTML = "送信済み";
+    voteSendButton.disabled = true;
   } else {
     window.alert(`合計${voteSUM}点になるように割り振ってください`);
   }
@@ -294,8 +322,10 @@ function voteSendButtonOnClick(){
 
 socket.on("score_get_back", function(data){
   voteText.hidden = true;
-  setUpText.hidden = false;
+  scoreText.hidden = false;
   scoreList = data.scoreList;
+  voteSendButton.innerHTML = "送信";
+  voteSendButton.disabled = false;
   
   for(let index=0; index<5; index++){
     
@@ -303,12 +333,24 @@ socket.on("score_get_back", function(data){
     
     if(index < playerList.length) {
       displayScoreElement[index].innerHTML = scoreList[index];
+      document.getElementById(`scoreText_score${index+1}`).innerHTML = scoreList[index];
       console.log(playerList[index].name + ":" + scoreList[index]);
     } else {
       displayScoreElement[index].innerHTML = 0;
     }
+    
   }
 });
+
+/* 次のゲームに進む*/
+function nextGameButtonOnClick(){
+  if(step>=maxStep){
+    socket.emit("game_end",{step:step,maxStep:maxStep}); //終了時 
+  }
+  else {
+    startButtonOnClick();
+  }
+}
 
 
 /* 切断時処理 */
@@ -319,7 +361,39 @@ socket.on("somebody_disconnected",function(data){
   chair_controll();
 });
 
+/* リセット */
+function resetButtonOnClick(){
+  let checkResetFlag = window.confirm('ゲームをリセットしますか？');
+  
+  if(checkResetFlag){
+    socket.emit("reset_s",{});
+  }
+  else{
+    window.alert("リセットを取りやめました");
+  }
+}
 
+socket.on("reset_c",function(data){
+  playerNum = -1; //初期値(未参加)なら-1
+  nowPlayerName = playerName.value; //名前入力欄
+  playerList = [];
+  tokenList = [];
+  scoreList = [0,0,0,0,0]; //現在プレイヤーが持つ得点。本当はプレイヤーリストと一緒にクラス化したいんだけど、空の配列に対してメンバを参照しようとしてしまって今のままだとうまくいかない……
+  voteList = [0,0,0,0,0]; //これから投票する得点を一時的に記録
+
+  chair_controll();
+  
+  for (var i = 0; i < choiceNum; i++) {
+    document.getElementById(`imageFrame${i + 1}`).innerHTML = "";
+  }
+  
+  noEntryText.hidden = false;
+  setUpText.hidden = true;
+  questionTextAndButton.hidden = true;
+  voteText.hidden = true;
+  scoreText.hidden = true;
+  
+});
 
 // 紐付け
 chatButton.onclick = chatButtonOnClick;
@@ -327,6 +401,8 @@ startButton.onclick = startButtonOnClick;
 entryButton.onclick = entryButtonOnClick;
 answerSendButton.onclick = answerSendButtonOnClick;
 voteSendButton.onclick = voteSendButtonOnClick;
+nextGameButton.onclick = nextGameButtonOnClick; //startButtonと同じことをする
+resetButton.onclick = resetButtonOnClick;
 //imageOnClickはHTMLを書き込む時にHTML側に直接記述される
 
 /* こっちはデバッグ 

@@ -15,7 +15,7 @@
   </head>
   <body>
     
-    <button class="warningButton" id="resetbutton"> リセットボタン（未機能） </button>
+    <button class="warningButton" id="resetButton"> リセットボタン（未機能） </button>
       
     <div class="infomationContainer">
       <div class="textContainer">
@@ -39,6 +39,7 @@
         
         <!-- > ゲーム開始後：ここに問題文 < -->
         <div class="infomationText" id="questionTextAndButton" hidden="hidden">
+          <div class="step" id="stepText"></div>
           <div id="questionText"></div>
           <button class='send_OK_button' id='answerSendButton'>送信確定</button>
         </div>
@@ -85,6 +86,17 @@
           <button id="voteSendButton" type="button">決定</button>
           
         </div>
+        <!-- 投票後 -->
+        <div class="infomationText" id="scoreText" hidden="hidden">
+          <span> 現在のスコア<br> </span>
+            <span id="scoreText_PlayerName1"></span>:<span id="scoreText_score1"></span><br>
+            <span id="scoreText_PlayerName2"></span>:<span id="scoreText_score2"></span><br>
+            <span id="scoreText_PlayerName3"></span>:<span id="scoreText_score3"></span><br>
+            <span id="scoreText_PlayerName4"></span>:<span id="scoreText_score4"></span><br>
+            <span id="scoreText_PlayerName5"></span>:<span id="scoreText_score5"></span><br>
+          
+          <button id="nextGameButton" type="button">次へ</button>
+        </div>
         
       </div>
       <div class="choicesImageContainer">
@@ -98,7 +110,7 @@
           id="answerTextArea"
           cols="50"
           rows="5"
-          placeholder="回答はここに入力"
+          placeholder="チャットや回答はここに入力"
         ></textarea
         ><br />
         <button id="chatButton" type="button">送信</button>

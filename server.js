@@ -27,6 +27,7 @@ var voteList = [0,0,0,0,0];
 
 /* ゲームルール */
 const choiceNum = 3; //選択肢数は暫定3
+var step = 0;
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
@@ -110,20 +111,26 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       }
       
       startAgree = 0;
-      io.sockets.emit("all_agree",{Qnum:Qnum, image:image});
+      console.log(`step:${step}`)
+      step += 1;
+      
+      io.sockets.emit("all_agree",{Qnum:Qnum, image:image, step:step});
     }
   });
   
   /* リセット */
-  socket.on("reset",function(data){
+  socket.on("reset_s",function(data){
     startAgree = 0;
+    answerAgree = []
     voteAgree = 0;
     playerList = [];
     tokenList = [];
     scoreList = [0,0,0,0,0];
     voteList = [0,0,0,0,0];
+    answerHTMLList = [];
+    step = 0;
     
-    io.sockets.emit("reset");
+    io.sockets.emit("reset_c",{});
   });
   
   /* 回答の収集 */
@@ -137,6 +144,8 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     console.log(answerAgree.length,playerList.length);
     if(answerAgree.length >= playerList.length){
       io.sockets.emit("answerOpen",{answerHTMLList:answerHTMLList});
+      answerHTMLList = [];
+      answerAgree = [];
     }
   });
   
@@ -157,6 +166,11 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     }
   });
   
+  /* 終了時 */
+  socket.on("game_end",function(data){
+    
+  });
+  
   /* 切断時 */
   socket.on('disconnect',() => { //切断時処理。タブを切り替えただけで切れちゃうのでちょっと対処法を考え中。
     console.log( 'disconnect' );
@@ -165,6 +179,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     playerList.splice(index,1);
     tokenList.splice(index,1);
     scoreList.splice(index,1);
+    answerHTMLList.splice(index,1);
     if(scoreList.length < 5){scoreList.push(0);}
     console.log(`${name} is disconnected.`);
     console.log(`${index}`);
