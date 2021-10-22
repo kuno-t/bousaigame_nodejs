@@ -5,6 +5,7 @@ const questionTextAndButton = document.getElementById("questionTextAndButton");
 const questionText = document.getElementById("questionText");
 const voteText = document.getElementById("voteText");
 const scoreText = document.getElementById("scoreText");
+const resultText = document.getElementById("resultText");
 const stepText = document.getElementById("stepText");
 
 const entryButton = document.getElementById("entryButton");
@@ -70,13 +71,21 @@ const scoreText_scoreElement = [
   document.getElementById("scoreText_score5"),
 ];
 
+const resultTextElement = [
+  document.getElementById("1stPlayer"),
+  document.getElementById("2ndPlayer"),
+  document.getElementById("3rdPlayer"),
+  document.getElementById("4thPlayer"),
+  document.getElementById("5thPlayer"),
+]
+
 const answerTextArea = document.getElementById("answerTextArea"); 
 const chatButton = document.getElementById("chatButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
 const voteSUM = 7; //投票時の合計得点数は暫定7
-const maxStep = 1; //最大問題回数
+const maxStep = 3; //最大問題回数
 var step = 0; //現在のステップ
 const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
@@ -125,7 +134,7 @@ function startButtonOnClick() {
   
   $.getJSON(dataUrl, bousaiJSON => {
     console.log(JSON.stringify(bousaiJSON));
-    socket.emit("game_start", {bousaiJSON: bousaiJSON});
+    socket.emit("game_start", {bousaiJSON: bousaiJSON, num:playerNum});
   });
 }
 
@@ -309,7 +318,7 @@ $(function(){
 function voteSendButtonOnClick(){
   
   if(voteSUM == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
-    socket.emit("score_set",{voteList: voteList, playerToken:myToken});
+    socket.emit("score_set",{voteList: voteList, playerToken:myToken, num:playerNum});
     console.log("send");  
     
     voteList = [0,0,0,0,0];
@@ -345,13 +354,41 @@ socket.on("score_get_back", function(data){
 /* 次のゲームに進む*/
 function nextGameButtonOnClick(){
   if(step>=maxStep){
-    socket.emit("game_end",{step:step,maxStep:maxStep}); //終了時 
+    socket.emit("game_end",{step:step,maxStep:maxStep, num:playerNum}); //終了時 
   }
   else {
     startButtonOnClick();
   }
 }
 
+socket.on("game_end_back",function(data){
+  try{
+    let copyPlayerList = data.playerList;
+    for(let i=0; i<copyPlayerList.length-1; i++){ //バブルソート
+      for(let j=copyPlayerList.length-1; j>i; j--){
+        if(copyPlayerList[j] > copyPlayerList[j-1]){
+          let temp = copyPlayerList[j];
+          copyPlayerList[j] = copyPlayerList[j-1];
+          copyPlayerList[j-1] = temp;
+        }
+      }
+    }
+    
+    for(let i=0; i<5; i++){
+      if(i<copyPlayerList.length){
+        resultTextElement[i].innerHTML = `${i+1}位 ${copyPlayerList[i].name}: ${copyPlayerList[i].score}ポイント`;
+      } else {
+        resultTextElement[i].innerHTML = "";
+      }
+    }
+    
+    resultText.hidden = false;
+    scoreText.hidden = true;
+    
+  }catch(e){
+    console.error(e.name,e.message);
+  }
+});
 
 /* 切断時処理 */
 socket.on("somebody_disconnected",function(data){
@@ -366,7 +403,7 @@ function resetButtonOnClick(){
   let checkResetFlag = window.confirm('ゲームをリセットしますか？');
   
   if(checkResetFlag){
-    socket.emit("reset_s",{});
+    socket.emit("reset_s",{num:playerNum});
   }
   else{
     window.alert("リセットを取りやめました");
@@ -392,6 +429,7 @@ socket.on("reset_c",function(data){
   questionTextAndButton.hidden = true;
   voteText.hidden = true;
   scoreText.hidden = true;
+  resultText.hidden = true;
   
 });
 

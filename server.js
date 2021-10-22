@@ -65,7 +65,12 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
         name: name,
         token: token,
         score: 0,
-        agree: false
+        startAgree: false,
+        answerAgree: false,
+        voteAgree: false,
+        voteList: false,
+        answerHTML: null,
+        disconected: false
       };
       
       playerList.push(Player);
@@ -97,6 +102,20 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   /* 開始処理 */
   socket.on("game_start",function(data){
     startAgree += 1;
+    
+    console.log(playerList,data.num)
+    playerList[data.num].startAgree = true;
+    
+    try {
+      for(let i=0; i<playerList.length; i++){
+        if(playerList[i].startAgree == true) {
+          startAgree+=1;
+        }
+      }
+    } catch(e) {
+      console.error( e.name, e.message );
+    }
+    
     if(startAgree >= playerList.length){//} && playerList.length >= 3){
       let bousaiJSON = data.bousaiJSON;
       
@@ -110,12 +129,23 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
         image[i] = imageList[numList[i]]; //image決定
       }
       
-      startAgree = 0;
+      
       console.log(`step:${step}`)
       step += 1;
       
+      try {
+        for(let i=0; i<playerList.length; i++){
+          playerList[i].startAgree = false;
+        }
+      } catch(e) {
+        console.error( e.name, e.message );
+      }
+      
       io.sockets.emit("all_agree",{Qnum:Qnum, image:image, step:step});
     }
+    
+    startAgree = 0; //startAgreeのリセット
+    
   });
   
   /* リセット */
@@ -162,13 +192,23 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
         scoreList[i] += voteList[i]; //(仮)
       }
       voteList = [0,0,0,0,0];
-      io.sockets.emit("score_get_back", {scoreList: scoreList})
+      
+      try{
+      
+        for(let i = 0; i < playerList.length; i++){
+          playerList[i].score = scoreList[i];
+        }
+        console.log(playerList);
+        io.sockets.emit("score_get_back", {scoreList: scoreList})
+      } catch(e){
+        console.error( e.name, e.message );
+      }
     }
   });
   
   /* 終了時 */
   socket.on("game_end",function(data){
-    
+    io.sockets.emit("game_end_back",{playerList: playerList})
   });
   
   /* 切断時 */

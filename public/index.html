@@ -15,11 +15,11 @@
   </head>
   <body>
     
-    <button class="warningButton" id="resetButton"> リセットボタン（未機能） </button>
+    <button class="warningButton" id="resetButton"> リセットボタン </button>
       
-    <div class="infomationContainer">
+    <div class="informationContainer">
       <div class="textContainer">
-        <div class="infomationText" id="noEntryText">
+        <div class="informationText" id="noEntryText">
           現在、未参加です。<br />
           ゲームに参加したい場合は、<br />
           名前を入力して下の着席ボタンを押してください。<br />
@@ -28,7 +28,7 @@
         </div>
         
         <!-- > 待機中 < -->
-        <div class="infomationText" id="setUpText" hidden="hidden">
+        <div class="informationText" id="setUpText" hidden="hidden">
           現在、待機中です。<br />
           ゲームを開始したい場合は、<br />
           下の開始ボタンを押してください。<br />
@@ -38,14 +38,14 @@
         </div>
         
         <!-- > ゲーム開始後：ここに問題文 < -->
-        <div class="infomationText" id="questionTextAndButton" hidden="hidden">
+        <div class="informationText" id="questionTextAndButton" hidden="hidden">
           <div class="step" id="stepText"></div>
           <div id="questionText"></div>
           <button class='send_OK_button' id='answerSendButton'>送信確定</button>
         </div>
         
         <!-- > 投票時 < -->
-        <div class="infomationText" id="voteText" hidden="hidden">
+        <div class="informationText" id="voteText" hidden="hidden">
           <span> あなたが面白いと思ったり、<br>納得できる意見を出した人に<br>『なるほどポイント』を贈ります。<br>合計7点になるように、点数を割り振ってください。<br></span><br>
           
           <div class="vote" id="votePlayer1">
@@ -86,8 +86,9 @@
           <button id="voteSendButton" type="button">決定</button>
           
         </div>
+        
         <!-- 投票後 -->
-        <div class="infomationText" id="scoreText" hidden="hidden">
+        <div class="informationText" id="scoreText" hidden="hidden">
           <span> 現在のスコア<br> </span>
             <span id="scoreText_PlayerName1"></span>:<span id="scoreText_score1"></span><br>
             <span id="scoreText_PlayerName2"></span>:<span id="scoreText_score2"></span><br>
@@ -96,6 +97,15 @@
             <span id="scoreText_PlayerName5"></span>:<span id="scoreText_score5"></span><br>
           
           <button id="nextGameButton" type="button">次へ</button>
+        </div>
+        
+        <div class="informationText" id="resultText" >
+          <span> 結果 <br><span>
+            <span class="first" id="1stPlayer">1位</span><br>
+            <span class="second" id="2ndPlayer">2位</span><br>
+            <span class="third" id="3rdPlayer">3位</span><br>
+            <span id="4thPlayer"></span>4位<br>
+            <span id="5thPlayer"></span>5位<br>
         </div>
         
       </div>

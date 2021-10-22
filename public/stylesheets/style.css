@@ -7,7 +7,7 @@ body {
     color: #FF0000;
 }
 
-.infomationContainer{
+.informationContainer{
     position: relative;
 }
 
@@ -19,6 +19,21 @@ body {
     text-align: center;
     border: 2px solid #bbbbbb;
     margin: 10px auto;
+}
+
+.first {
+  color: #e2d06e;
+  font-size: xx-large;
+}
+
+.second {
+  color: #777788;
+  font-size: x-large;
+}
+
+.third {
+  color: #BA6E40;
+  font-size: large;
 }
 
 .choicesImageContainer {
