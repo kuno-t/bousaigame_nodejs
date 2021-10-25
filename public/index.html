@@ -41,7 +41,7 @@
         <div class="informationText" id="questionTextAndButton" hidden="hidden">
           <div class="step" id="stepText"></div>
           <div id="questionText"></div>
-          <button class='send_OK_button' id='answerSendButton'>送信確定</button>
+          <button class='send_OK_button' id='answerSendButton'>回答として送信</button>
         </div>
         
         <!-- > 投票時 < -->
@@ -99,22 +99,26 @@
           <button id="nextGameButton" type="button">次へ</button>
         </div>
         
-        <div class="informationText" id="resultText" >
-          <span> 結果 <br><span>
-            <span class="first" id="1stPlayer">1位</span><br>
-            <span class="second" id="2ndPlayer">2位</span><br>
-            <span class="third" id="3rdPlayer">3位</span><br>
-            <span id="4thPlayer"></span>4位<br>
-            <span id="5thPlayer"></span>5位<br>
+        <!-- 最終結果 -->
+        <div class="informationText" id="resultText" hidden="hidden">
+          <span> 結果 <br></span>
+          <span class="first" id="1stPlayer">1位</span><br>
+          <span class="second" id="2ndPlayer">2位</span><br>
+          <span class="third" id="3rdPlayer">3位</span><br>
+          <span id="4thPlayer">4位</span><br>
+          <span id="5thPlayer">5位</span><br>
         </div>
         
       </div>
+          
+      <!-- 画像の箱 -->
       <div class="choicesImageContainer">
         <div class="choicesImageFrame" id="imageFrame1"></div>
         <div class="choicesImageFrame" id="imageFrame2"></div>
         <div class="choicesImageFrame" id="imageFrame3"></div>
       </div>
 
+      <!-- チャットと回答-->
       <div class="answer">
         <textarea
           id="answerTextArea"
@@ -123,7 +127,7 @@
           placeholder="チャットや回答はここに入力"
         ></textarea
         ><br />
-        <button id="chatButton" type="button">送信</button>
+        <button id="chatButton" type="button">チャット送信</button>
       </div>
     </div>
     <div class="displayAnswerContainer">

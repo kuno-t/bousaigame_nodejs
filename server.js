@@ -27,6 +27,8 @@ var voteList = [0,0,0,0,0];
 
 /* ゲームルール */
 const choiceNum = 3; //選択肢数は暫定3
+const maxStep = 3; //こちらも暫定3
+var questionList = [];
 var step = 0;
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
@@ -118,8 +120,10 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     
     if(startAgree >= playerList.length){//} && playerList.length >= 3){
       let bousaiJSON = data.bousaiJSON;
-      
-      let Qnum = Math.floor(Math.random() * bousaiJSON.question.length); //Question決定。
+      if(questionList.length == 0){
+        questionList = randoms(maxStep, bousaiJSON.question.length);
+      }
+      let Qnum = questionList[step]//Question決定。
       console.log("Qnum:",Qnum,"/",bousaiJSON.question.length);
       let imageList = bousaiJSON.question[Qnum].image;
       let image = [];
@@ -150,6 +154,10 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* リセット */
   socket.on("reset_s",function(data){
+    App_Reset();
+  });
+  
+  function App_Reset(){
     startAgree = 0;
     answerAgree = []
     voteAgree = 0;
@@ -159,9 +167,8 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     voteList = [0,0,0,0,0];
     answerHTMLList = [];
     step = 0;
-    
     io.sockets.emit("reset_c",{});
-  });
+  };
   
   /* 回答の収集 */
   
@@ -215,16 +222,21 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   socket.on('disconnect',() => { //切断時処理。タブを切り替えただけで切れちゃうのでちょっと対処法を考え中。
     console.log( 'disconnect' );
     var index = tokenList.indexOf(token);
-    console.log(tokenList,token);
-    playerList.splice(index,1);
-    tokenList.splice(index,1);
-    scoreList.splice(index,1);
-    answerHTMLList.splice(index,1);
-    if(scoreList.length < 5){scoreList.push(0);}
-    console.log(`${name} is disconnected.`);
-    console.log(`${index}`);
-    io.sockets.emit("server_to_client", { name: name, value: 'someone is disconnected.'});
-    io.sockets.emit("somebody_disconnected",{ playerList:playerList, num: tokenList.indexOf(token), token: token, tokenList: tokenList, scoreList: scoreList});
+    if(index <= 0){
+      console.log(tokenList,token);
+      playerList.splice(index,1);
+      tokenList.splice(index,1);
+      scoreList.splice(index,1);
+      answerHTMLList.splice(index,1);
+      if(scoreList.length < 5){scoreList.push(0);}
+      console.log(`${name} is disconnected.`);
+      console.log(`${index}`);
+      io.sockets.emit("server_to_client", { name: name, value: 'someone is disconnected.'});
+      io.sockets.emit("somebody_disconnected",{ playerList:playerList, num: tokenList.indexOf(token), token: token, tokenList: tokenList, scoreList: scoreList});
+      if(playerList.length == 0) {
+        App_Reset(); // 誰もいないならリセット
+      }
+    }
   });
   
 });
@@ -237,7 +249,8 @@ function makeToken(id){ //トークンの生成
 function randoms(num, max) { //最大(max-1)の重複なし乱数をnum個生成する
   console.log(num, max);
   if(num > max){
-    console.log("num <= maxにしてください！")
+    console.error("num <= maxにしてください！");
+    return;
   }
   var randoms = [];
   var tmp;

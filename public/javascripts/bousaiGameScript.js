@@ -329,6 +329,8 @@ function voteSendButtonOnClick(){
   }
 }
 
+
+//スコアのセット
 socket.on("score_get_back", function(data){
   voteText.hidden = true;
   scoreText.hidden = false;
@@ -375,6 +377,7 @@ socket.on("game_end_back",function(data){
     }
     
     for(let i=0; i<5; i++){
+      
       if(i<copyPlayerList.length){
         resultTextElement[i].innerHTML = `${i+1}位 ${copyPlayerList[i].name}: ${copyPlayerList[i].score}ポイント`;
       } else {
@@ -417,13 +420,19 @@ socket.on("reset_c",function(data){
   tokenList = [];
   scoreList = [0,0,0,0,0]; //現在プレイヤーが持つ得点。本当はプレイヤーリストと一緒にクラス化したいんだけど、空の配列に対してメンバを参照しようとしてしまって今のままだとうまくいかない……
   voteList = [0,0,0,0,0]; //これから投票する得点を一時的に記録
-
+  step = 0;
+  
   chair_controll();
   
-  for (var i = 0; i < choiceNum; i++) {
+  for (let i = 0; i < choiceNum; i++) {
     document.getElementById(`imageFrame${i + 1}`).innerHTML = "";
   }
   
+  for (let i = 0; i < 5; i++) {
+    displayAnswer.innerHTML = ""; //チャット欄からっぽにする
+    displayScoreElement[i].innerHTML = "0"; //スコアは0に戻す
+  }
+    
   noEntryText.hidden = false;
   setUpText.hidden = true;
   questionTextAndButton.hidden = true;

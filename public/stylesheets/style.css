@@ -23,17 +23,17 @@ body {
 
 .first {
   color: #e2d06e;
-  font-size: xx-large;
+  font-size: x-large;
 }
 
 .second {
   color: #777788;
-  font-size: x-large;
+  font-size: large;
 }
 
 .third {
   color: #BA6E40;
-  font-size: large;
+  font-size: medium;
 }
 
 .choicesImageContainer {
