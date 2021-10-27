@@ -108,6 +108,7 @@ socket.on("token",function(data){
 socket.on("setUpData",function(data){
   playerList = data.playerList;
   chair_controll(); //playerListからプレイヤー表示をする自作関数
+  phase_setUp(data.phase);
 });
 
 //関数
@@ -248,6 +249,11 @@ function chair_controll(){ //参加者の椅子の制御
 /* 回答の送信 */
 function answerSendButtonOnClick(){
   
+  if (playerNum === -1) {
+    window.alert("あなたは参加していません");
+    return; //プレイヤー未定なら警告だけ出して何もしない
+  }
+  
   let answerText = answerTextArea.value; //テキストを読み取る
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   answerTextArea.value = ""; //テキストエリアをクリア
@@ -271,6 +277,12 @@ socket.on("answerOpen",function(data){
 /* +に投票 */
 $(function(){
   $(".upVote").on("click", function() {
+    
+    if (playerNum === -1) {
+      window.alert("あなたは参加していません");
+      return; //プレイヤー未定なら警告だけ出して何もしない
+    }
+    
     var voteNum = $(this).attr("data-num")-1;
     if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
       if($(this).attr("data-num") <= playerList.length){
@@ -296,6 +308,12 @@ $(function(){
 /* -に投票 */
 $(function(){
   $(".downVote").on("click", function() {
+    
+    if (playerNum === -1) {
+      window.alert("あなたは参加していません");
+      return; //プレイヤー未定なら警告だけ出して何もしない
+    }
+    
     var voteNum = $(this).attr("data-num")-1;
     if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
       if(voteList[voteNum] > 0){
@@ -316,6 +334,10 @@ $(function(){
 
 /* 投票の送信 */
 function voteSendButtonOnClick(){
+  if (playerNum === -1) {
+    window.alert("あなたは参加していません");
+    return; //プレイヤー未定なら警告だけ出して何もしない
+  }
   
   if(voteSUM == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
     socket.emit("score_set",{voteList: voteList, playerToken:myToken, num:playerNum});
@@ -355,6 +377,12 @@ socket.on("score_get_back", function(data){
 
 /* 次のゲームに進む*/
 function nextGameButtonOnClick(){
+  
+  if (playerNum === -1) {
+    window.alert("あなたは参加していません");
+    return; //プレイヤー未定なら警告だけ出して何もしない
+  }
+  
   if(step>=maxStep){
     socket.emit("game_end",{step:step,maxStep:maxStep, num:playerNum}); //終了時 
   }
@@ -410,6 +438,7 @@ function resetButtonOnClick(){
   }
   else{
     window.alert("リセットを取りやめました");
+    return;
   }
 }
 
@@ -451,6 +480,22 @@ voteSendButton.onclick = voteSendButtonOnClick;
 nextGameButton.onclick = nextGameButtonOnClick; //startButtonと同じことをする
 resetButton.onclick = resetButtonOnClick;
 //imageOnClickはHTMLを書き込む時にHTML側に直接記述される
+
+function phase_setUp(phase){
+  if(phase == "Question"){
+    noEntryText.hidden = true;
+    questionTextAndButton.hidden = false;
+  } else if(phase == "Vote"){
+    noEntryText.hidden = true;
+    voteText.hidden = false;
+  } else if(phase == "Score"){
+    noEntryText.hidden = true;
+    scoreText.hidden = false;
+  } else if(phase == "End"){
+    noEntryText.hidden = true;
+    resultText.hidden = false;
+  }
+}
 
 /* こっちはデバッグ 
 var bousaiJSON = {

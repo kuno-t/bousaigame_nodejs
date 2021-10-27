@@ -31,6 +31,8 @@ const maxStep = 3; //こちらも暫定3
 var questionList = [];
 var step = 0;
 
+var phase = "Entry"; //"Entry","Question","Vote","Score","End"
+
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   var Player; //プレイヤーオブジェクト
@@ -45,7 +47,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   io.to(socket.id).emit("token", {token:token}); //接続してきた相手にだけ返す
   // これはhttps://blog.katsubemakito.net/nodejs/socketio/realtime-chat2を参考
   
-  io.to(socket.id).emit("setUpData",{playerList: playerList}); //ゲームの状況を渡す
+  io.to(socket.id).emit("setUpData",{playerList: playerList, phase: phase}); //ゲームの状況を渡す
   
   /*チャット*/
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
@@ -145,7 +147,9 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
         console.error( e.name, e.message );
       }
       
+      phase = "Question";
       io.sockets.emit("all_agree",{Qnum:Qnum, image:image, step:step});
+      
     }
     
     startAgree = 0; //startAgreeのリセット
@@ -167,7 +171,8 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     voteList = [0,0,0,0,0];
     answerHTMLList = [];
     step = 0;
-    io.sockets.emit("reset_c",{});
+    phase = "Entry";
+    io.sockets.emit("reset_c",{}); //クライアントサイドもリセット
   };
   
   /* 回答の収集 */
@@ -181,6 +186,9 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     console.log(answerAgree.length,playerList.length);
     if(answerAgree.length >= playerList.length){
       io.sockets.emit("answerOpen",{answerHTMLList:answerHTMLList});
+      
+      phase = "Vote";
+      
       answerHTMLList = [];
       answerAgree = [];
     }
@@ -206,7 +214,9 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
           playerList[i].score = scoreList[i];
         }
         console.log(playerList);
-        io.sockets.emit("score_get_back", {scoreList: scoreList})
+        io.sockets.emit("score_get_back", {scoreList: scoreList});
+        
+        phase = "Score";
       } catch(e){
         console.error( e.name, e.message );
       }
@@ -215,7 +225,8 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* 終了時 */
   socket.on("game_end",function(data){
-    io.sockets.emit("game_end_back",{playerList: playerList})
+    io.sockets.emit("game_end_back",{playerList: playerList});
+    phase = "End";
   });
   
   /* 切断時 */
