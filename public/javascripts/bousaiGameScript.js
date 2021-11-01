@@ -220,21 +220,6 @@ socket.on("c_sit_down",function(data){ //空いていたら着席するのでそ
   }
 });
 
-/* //古いバージョン
-socket.on("c_sit_down",function(data){
-  displayPlayerNameElement[data.num].innerHTML = playerList[data.num] = data.name; //名前を表示しつつプレイヤーリストに保持
-  document.getElementById(`seat${data.num + 1}`).disabled = true; //着席したらボタンを非活性化
-  
-  if(data.oldNum != -1) { 
-    displayPlayerNameElement[data.oldNum].innerHTML = "空席";
-    playerList[data.oldNum] = false;
-    document.getElementById(`seat${data.oldNum + 1}`).disabled = false;
-  } //初めての着席じゃなければ、前に座っていた席を空席にしてボタンを活性化
-  
-  console.log(playerList);
-});
-*/
-
 function chair_controll(){ //参加者の椅子の制御
   for(let index = 0; index<5; index++){
     if(index < playerList.length) {
@@ -496,41 +481,3 @@ function phase_setUp(phase){
     resultText.hidden = false;
   }
 }
-
-/* こっちはデバッグ 
-var bousaiJSON = {
-    question:[{
-        text:"大きな地震に被災したときのことを想定します。<br>備蓄のあった以下の食べ物のどれかについて、<br>他の選択肢には無い長所を考えてみましょう。<br>限られた条件下で特に有用であれば、<br>条件を付け足してみても構いません。<br>",
-        image:[{
-            alt:"カップラーメン",
-            src:"food_cup_noodle_close.png"
-        },
-        {
-            alt:"乾パン",
-            src:"bousai_kanpan.png"
-        },
-        {
-            alt:"缶詰",
-            src:"food_kandume_close.png"
-        }
-        ]
-    },
-    {
-        text:"大きな地震に被災したときのことを想定します。<br>水を保管、運搬するための以下の容器について、<br>他の選択肢には無い長所を考えてみましょう。<br>限られた条件下で特に有用であれば、<br>条件を付け足してみても構いません。<br>",
-        image:[{
-            alt:"ペットボトル",
-            src:"bousai_water.png"
-        },
-        {
-            alt:"バケツ",
-            src:"bucket_blue_water_down.png"
-        },
-        {
-            alt:"レジ袋",
-            src:"shopping_bag_rejibukuro.png"
-        }
-        ]
-    }
-    ]
-};
-*/
