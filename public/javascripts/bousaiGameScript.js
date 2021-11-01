@@ -284,7 +284,7 @@ $(function(){
     }
     
     var voteNum = $(this).attr("data-num")-1;
-    if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
       if($(this).attr("data-num") <= playerList.length){
         console.log(`${voteNum},${playerList.length}`);
         if(voteList[voteNum] < voteSUM){ //合計点以上でないか
@@ -315,7 +315,7 @@ $(function(){
     }
     
     var voteNum = $(this).attr("data-num")-1;
-    if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
       if(voteList[voteNum] > 0){
         voteList[voteNum] -= 1;
         console.log($(this).attr("data-num"),voteList);

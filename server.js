@@ -120,7 +120,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       console.error( e.name, e.message );
     }
     
-    if(startAgree >= playerList.length){//} && playerList.length >= 3){
+    if(startAgree >= playerList.length && playerList.length >= 3){
       let bousaiJSON = data.bousaiJSON;
       if(questionList.length == 0){
         questionList = randoms(maxStep, bousaiJSON.question.length);
