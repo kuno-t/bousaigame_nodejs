@@ -20,14 +20,25 @@ var scoreList = [0,0,0,0,0]; //スコア集計で参照中。プレイヤーの�
 var tokenList = [];
 
 var startAgree = 0; //全員OK?
+var answerAgree = [];
 var voteAgree = 0; //投票について
+var answerHTMLList = [];
 var voteList = [0,0,0,0,0];
+
+/* ゲームルール */
+const choiceNum = 3; //選択肢数は暫定3
+const maxStep = 3; //こちらも暫定3
+var questionList = [];
+var step = 0;
+
+var phase = "Entry"; //"Entry","Question","Vote","Score","End"
 
 io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   var Player; //プレイヤーオブジェクト
   var name; //名前
   var token; //トークン
+  var agree; //賛成かどうか
   /*var score; //スコア、 */
   
   
@@ -36,7 +47,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   io.to(socket.id).emit("token", {token:token}); //接続してきた相手にだけ返す
   // これはhttps://blog.katsubemakito.net/nodejs/socketio/realtime-chat2を参考
   
-  io.to(socket.id).emit("setUpData",{playerList: playerList}); //ゲームの状況を渡す
+  io.to(socket.id).emit("setUpData",{playerList: playerList, phase: phase}); //ゲームの状況を渡す
   
   /*チャット*/
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
@@ -44,7 +55,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   });
   
   /*問題と画像*/
-    socket.on("c_to_s_question", function(data) { 
+  socket.on("c_to_s_question", function(data) { 
     io.sockets.emit("s_to_c_question", {Qnum: data.question, image:data.image });
   });
   
@@ -53,22 +64,31 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
     if(playerList.length < 5){
       name = data.name;
       
-      /* オブジェクト作成(これを渡すのはうまくいかなかった)
-      
+      /* オブジェクト作成 */
       Player = {
         name: name,
         token: token,
-        score: 0
+        score: 0,
+        startAgree: false,
+        answerAgree: false,
+        voteAgree: false,
+        voteList: false,
+        answerHTML: null,
+        disconected: false
       };
       
-      */
+      playerList.push(Player);
+      console.log(playerList);
       
-      tokenList.push(token);
-      playerList[tokenList.indexOf(token)] = name;
+      var num = -1;
+      for(let index=0; index < playerList.length; index++){
+        let playerBuffer = playerList[index];
+        console.log(playerBuffer);
+        if(token == playerBuffer.token){ num = index }
+      }
       
-      
-      console.log(name);
-      io.sockets.emit("c_sit_down",{ playerList:playerList, num: tokenList.indexOf(token), token:token});
+      tokenList[num] = token;
+      io.sockets.emit("c_sit_down",{ playerList:playerList, num: num, token:token});
     } else {
       io.to(socket.id).emit("sit_down_error",{text:"満席"});
     }
@@ -85,18 +105,93 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* 開始処理 */
   socket.on("game_start",function(data){
-  startAgree += 1;
-    if(startAgree >= playerList.length && playerList.length >= 3){
-      startAgree = 0;
-      io.sockets.emit("all_agree",{num: data.num, name:data.name});
+    startAgree += 1;
+    
+    console.log(playerList,data.num)
+    playerList[data.num].startAgree = true;
+    
+    try {
+      for(let i=0; i<playerList.length; i++){
+        if(playerList[i].startAgree == true) {
+          startAgree+=1;
+        }
+      }
+    } catch(e) {
+      console.error( e.name, e.message );
     }
+    
+    if(startAgree >= playerList.length){//} && playerList.length >= 3){
+      let bousaiJSON = data.bousaiJSON;
+      if(questionList.length == 0){
+        questionList = randoms(maxStep, bousaiJSON.question.length);
+      }
+      let Qnum = questionList[step]//Question決定。
+      console.log("Qnum:",Qnum,"/",bousaiJSON.question.length);
+      let imageList = bousaiJSON.question[Qnum].image;
+      let image = [];
+      let numList = randoms(choiceNum, imageList.length); //乱数生成
+      for (let i = 0; i < choiceNum; i++) {
+      //画像を規定の数選ぶ。choiceNumは定数で一括変更可能。
+        image[i] = imageList[numList[i]]; //image決定
+      }
+      
+      
+      console.log(`step:${step}`)
+      step += 1;
+      
+      try {
+        for(let i=0; i<playerList.length; i++){
+          playerList[i].startAgree = false;
+        }
+      } catch(e) {
+        console.error( e.name, e.message );
+      }
+      
+      phase = "Question";
+      io.sockets.emit("all_agree",{Qnum:Qnum, image:image, step:step});
+      
+    }
+    
+    startAgree = 0; //startAgreeのリセット
+    
   });
   
   /* リセット */
-  socket.on("reset",function(data){
+  socket.on("reset_s",function(data){
+    App_Reset();
+  });
+  
+  function App_Reset(){
     startAgree = 0;
+    answerAgree = []
+    voteAgree = 0;
     playerList = [];
-    io.sockets.emit("reset");
+    tokenList = [];
+    scoreList = [0,0,0,0,0];
+    voteList = [0,0,0,0,0];
+    answerHTMLList = [];
+    step = 0;
+    phase = "Entry";
+    io.sockets.emit("reset_c",{}); //クライアントサイドもリセット
+  };
+  
+  /* 回答の収集 */
+  
+  socket.on("answerSend",function(data){
+    answerHTMLList[data.num] = data.html
+    if(-1 == answerAgree.indexOf(data.playerToken)){
+      answerAgree.push(data.playerToken);
+    }
+    
+    console.log(answerAgree.length,playerList.length);
+    if(answerAgree.length >= playerList.length){
+      io.sockets.emit("answerOpen",{answerHTMLList:answerHTMLList});
+      
+      phase = "Vote";
+      
+      answerHTMLList = [];
+      answerAgree = [];
+    }
   });
   
   /* スコア集計 */
@@ -111,20 +206,48 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
       for(let i = 0; i < 5; i++){
         scoreList[i] += voteList[i]; //(仮)
       }
-      io.sockets.emit("score_get_back", {scoreList: scoreList})
+      voteList = [0,0,0,0,0];
+      
+      try{
+      
+        for(let i = 0; i < playerList.length; i++){
+          playerList[i].score = scoreList[i];
+        }
+        console.log(playerList);
+        io.sockets.emit("score_get_back", {scoreList: scoreList});
+        
+        phase = "Score";
+      } catch(e){
+        console.error( e.name, e.message );
+      }
     }
+  });
+  
+  /* 終了時 */
+  socket.on("game_end",function(data){
+    io.sockets.emit("game_end_back",{playerList: playerList});
+    phase = "End";
   });
   
   /* 切断時 */
   socket.on('disconnect',() => { //切断時処理。タブを切り替えただけで切れちゃうのでちょっと対処法を考え中。
     console.log( 'disconnect' );
     var index = tokenList.indexOf(token);
-    playerList.splice(index,1);
-    tokenList.splice(index,1);
-    scoreList.splice(index,1);
-    if(scoreList.length < 5){scoreList.push(0);}
-    io.sockets.emit("server_to_client", { name: name, value: 'someone is disconnected.'});
-    io.sockets.emit("somebody_disconnected",{ playerList:playerList, num: tokenList.indexOf(token), token: token, tokenList: tokenList, scoreList: scoreList});
+    if(index <= 0){
+      console.log(tokenList,token);
+      playerList.splice(index,1);
+      tokenList.splice(index,1);
+      scoreList.splice(index,1);
+      answerHTMLList.splice(index,1);
+      if(scoreList.length < 5){scoreList.push(0);}
+      console.log(`${name} is disconnected.`);
+      console.log(`${index}`);
+      io.sockets.emit("server_to_client", { name: name, value: 'someone is disconnected.'});
+      io.sockets.emit("somebody_disconnected",{ playerList:playerList, num: tokenList.indexOf(token), token: token, tokenList: tokenList, scoreList: scoreList});
+      if(playerList.length == 0) {
+        App_Reset(); // 誰もいないならリセット
+      }
+    }
   });
   
 });
@@ -132,4 +255,28 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
 function makeToken(id){ //トークンの生成
   const str = "qwer" + id;
   return( crypto.createHash("sha256").update(str).digest('hex') ); //strをcryptoでsha256方式の暗号化
+}
+
+function randoms(num, max) { //最大(max-1)の重複なし乱数をnum個生成する
+  console.log(num, max);
+  if(num > max){
+    console.error("num <= maxにしてください！");
+    return;
+  }
+  var randoms = [];
+  var tmp;
+  var i = 0;
+  while (true) {
+    tmp = Math.floor(Math.random() * max);
+    // console.log(tmp);
+    if (!randoms.includes(tmp)) {
+      randoms.push(tmp);
+    }
+    if (randoms.length >= num || randoms.length >= max) {
+      break;
+    }
+    i++;
+  }
+  console.log(randoms);
+  return randoms;
 }

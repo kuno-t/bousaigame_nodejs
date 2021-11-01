@@ -30,6 +30,22 @@
             "src":"https://cdn.glitch.com/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fshopping_bag_rejibukuro.png?v=1625036004528"
         }
         ]
+    },
+    {
+        "text":"大きな震災に被災したときのことを想定します。<br>被災後、1週間くらい経ったころの生活であなたが重視したいものを選び、<br>その理由を考えてみましょう。<br>「なんとなく……」くらいの理由でもかまいません。<br>",
+        "image": [{
+            "alt":"娯楽",
+	          "src":"https://cdn.glitch.me/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fomocha_tsumiki.png?v=1634625423672"
+        },
+        {
+	          "alt":"睡眠",
+	          "src":"https://cdn.glitch.me/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fsuimin_man.png?v=1634625427400"
+        },
+        {
+	          "alt":"食事",
+	          "src":"https://cdn.glitch.me/b21b85eb-40d1-4b5d-a1dc-49a92d53a860%2Fsyokuji_family_tanoshisou.png?v=1634625426083"
+        }
+        ]
     }
     ]
 }
