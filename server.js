@@ -19,9 +19,9 @@ var playerList = [];
 var scoreList = [0,0,0,0,0]; //スコア集計で参照中。プレイヤーのクラス化はうまくいかなかった
 var tokenList = [];
 
-var startAgree = 0; //全員OK?
+var startAgree = []; //全員OK?
 var answerAgree = [];
-var voteAgree = 0; //投票について
+var voteAgree = []; //投票について
 var answerHTMLList = [];
 var voteList = [0,0,0,0,0];
 
@@ -51,7 +51,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /*チャット*/
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
-    io.sockets.emit("server_to_client_text", { html: data.html, number:data.number, name:data.name }); //server_to_clientという名前で送り返す
+    io.sockets.emit("server_to_client_text", { html:htmlSanitize(data.html), number:data.number, name:data.name }); //server_to_clientという名前で送り返す
   });
   
   /*問題と画像*/
@@ -61,7 +61,21 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* 着席処理 */
   socket.on("sit_down",function(data){
-    if(playerList.length < 5){
+    
+    
+    if(playerList.length < 5 &&
+      
+      /*重複を発見したらfalseを返す即時関数*/
+      (function(playerList,token){
+        for(const element of playerList){
+          if(token == element.token){
+            return false;
+          }
+        }
+        return true;
+      })(playerList,token)
+       
+    ){
       name = data.name;
       
       /* オブジェクト作成 */
@@ -105,22 +119,13 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* 開始処理 */
   socket.on("game_start",function(data){
-    startAgree += 1;
-    
     console.log(playerList,data.num)
-    playerList[data.num].startAgree = true;
     
-    try {
-      for(let i=0; i<playerList.length; i++){
-        if(playerList[i].startAgree == true) {
-          startAgree+=1;
-        }
-      }
-    } catch(e) {
-      console.error( e.name, e.message );
+    if(-1 == startAgree.indexOf(data.playerToken)){
+      startAgree.push(data.playerToken);
     }
     
-    if(startAgree >= playerList.length && playerList.length >= 3){
+    if(startAgree.length >= playerList.length && playerList.length >= 3){
       let bousaiJSON = data.bousaiJSON;
       if(questionList.length == 0){
         questionList = randoms(maxStep, bousaiJSON.question.length);
@@ -135,24 +140,13 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
         image[i] = imageList[numList[i]]; //image決定
       }
       
-      
+      startAgree = []; //startAgreeのリセット
       console.log(`step:${step}`)
       step += 1;
       
-      try {
-        for(let i=0; i<playerList.length; i++){
-          playerList[i].startAgree = false;
-        }
-      } catch(e) {
-        console.error( e.name, e.message );
-      }
-      
       phase = "Question";
-      io.sockets.emit("all_agree",{Qnum:Qnum, image:image, step:step});
-      
+      io.sockets.emit("all_agree",{Qnum:Qnum, image:image, step:step}); 
     }
-    
-    startAgree = 0; //startAgreeのリセット
     
   });
   
@@ -162,9 +156,9 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   });
   
   function App_Reset(){
-    startAgree = 0;
+    startAgree = [];
     answerAgree = []
-    voteAgree = 0;
+    voteAgree = [];
     playerList = [];
     tokenList = [];
     scoreList = [0,0,0,0,0];
@@ -176,9 +170,8 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   };
   
   /* 回答の収集 */
-  
   socket.on("answerSend",function(data){
-    answerHTMLList[data.num] = data.html
+    answerHTMLList[data.num] = htmlSanitize(data.html); //入力はサニタイジング
     if(-1 == answerAgree.indexOf(data.playerToken)){
       answerAgree.push(data.playerToken);
     }
@@ -196,13 +189,15 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* スコア集計 */
   socket.on("score_set",function(data){ //
-    for(let i = 0; i < 5; i++){
-      voteList[i] += data.voteList[i]; //(仮)
+    if(-1 == voteAgree.indexOf(data.playerToken)){
+      voteAgree.push(data.playerToken);
+      for(let i = 0; i < 5; i++){
+        voteList[i] += data.voteList[i]; //(仮)
+      }
     }
-    voteAgree += 1;
     
-    if(voteAgree >= playerList.length){
-      voteAgree = 0;
+    if(voteAgree.length >= playerList.length){
+      voteAgree = [];
       for(let i = 0; i < 5; i++){
         scoreList[i] += voteList[i]; //(仮)
       }
@@ -279,4 +274,9 @@ function randoms(num, max) { //最大(max-1)の重複なし乱数をnum個生成
   }
   console.log(randoms);
   return randoms;
+}
+
+/* サニタイジング */
+function htmlSanitize(string){
+  return String(string).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
 }

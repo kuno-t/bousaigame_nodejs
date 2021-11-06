@@ -133,9 +133,12 @@ socket.on("server_to_client_text",function(data){ //サーバーから受け取�
 /* ゲームスタート */
 function startButtonOnClick() {
   
+  startButton.innerHTML = "送信済み";
+  startButton.disabled = true;
+  
   $.getJSON(dataUrl, bousaiJSON => {
     console.log(JSON.stringify(bousaiJSON));
-    socket.emit("game_start", {bousaiJSON: bousaiJSON, num:playerNum});
+    socket.emit("game_start", {bousaiJSON: bousaiJSON, num:playerNum, playerToken: myToken});
   });
 }
 
@@ -144,6 +147,11 @@ socket.on("all_agree",function(data){
   setUpText.hidden = true;
   scoreText.hidden = true;
   questionTextAndButton.hidden = false; //表示テキストの切り替え
+  
+  startButton.innerHTML = "開始";
+  startButton.disabled = false;
+  nextGameButton.innerHTML = "次へ";
+  nextGameButton.disabled = false;
   
   step = data.step;
   stepText.innerHTML = `${step}/${maxStep}`;
@@ -241,9 +249,10 @@ function answerSendButtonOnClick(){
   
   let answerText = answerTextArea.value; //テキストを読み取る
   let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
-  answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
   socket.emit("answerSend", {html:answerTextHTML, playerToken:myToken, num:playerNum}); //サーバーに送る
+  
+  answerSendButton.innerHTML = "回答送信済み";
 }
 
 socket.on("answerOpen",function(data){
@@ -254,6 +263,9 @@ socket.on("answerOpen",function(data){
     displayAnswer[index].innerHTML +="<span class='answerTextHTML'>" + HTML +　"</span><br>"; //HTMLとして出力
     displayAnswer[index].scrollTop = displayAnswer[index].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
   });
+  
+  answerTextArea.value = ""; //テキストエリアをクリア
+  answerSendButton.innerHTML = "回答として送信";
 
   questionTextAndButton.hidden = true;
   voteText.hidden = false;
@@ -342,7 +354,7 @@ socket.on("score_get_back", function(data){
   voteText.hidden = true;
   scoreText.hidden = false;
   scoreList = data.scoreList;
-  voteSendButton.innerHTML = "送信";
+  voteSendButton.innerHTML = "決定";
   voteSendButton.disabled = false;
   
   for(let index=0; index<5; index++){
@@ -372,6 +384,8 @@ function nextGameButtonOnClick(){
     socket.emit("game_end",{step:step,maxStep:maxStep, num:playerNum}); //終了時 
   }
   else {
+    nextGameButton.innerHTML = "送信済み";
+    nextGameButton.disabled = true;
     startButtonOnClick();
   }
 }
@@ -381,7 +395,7 @@ socket.on("game_end_back",function(data){
     let copyPlayerList = data.playerList;
     for(let i=0; i<copyPlayerList.length-1; i++){ //バブルソート
       for(let j=copyPlayerList.length-1; j>i; j--){
-        if(copyPlayerList[j] > copyPlayerList[j-1]){
+        if(copyPlayerList[j].score > copyPlayerList[j-1].score){
           let temp = copyPlayerList[j];
           copyPlayerList[j] = copyPlayerList[j-1];
           copyPlayerList[j-1] = temp;
