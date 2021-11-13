@@ -260,7 +260,7 @@ socket.on("answerOpen",function(data){
   let index;
   data.answerHTMLList.forEach(function(HTML,index){
     console.log(index,HTML);
-    displayAnswer[index].innerHTML +="<span class='answerTextHTML'>" + HTML +　"</span><br>"; //HTMLとして出力
+    displayAnswer[index].innerHTML +="<span class='answerTextHTML'>" + `${step}問目：`+ HTML +　"</span><br>"; //HTMLとして出力
     displayAnswer[index].scrollTop = displayAnswer[index].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
   });
   
