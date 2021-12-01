@@ -119,14 +119,14 @@ function chatButtonOnClick() {
     return; //プレイヤー未定なら警告だけ出して何もしない
   }
   let answerText = answerTextArea.value; //テキストを読み取る
-  let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
-  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum, name:nowPlayerName}); //サーバーに送る
+  socket.emit("client_to_server_text", {text:answerText, number:playerNum, name:nowPlayerName}); //サーバーに送る
 }
 
 socket.on("server_to_client_text",function(data){ //サーバーから受け取る
-  displayAnswer[data.number].innerHTML += data.name + ":<br>" + data.html　+　"<br>"; //HTMLとして出力
+  let answerTextHTML = data.text.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
+  displayAnswer[data.number].innerHTML += data.name + ":<br>" + answerTextHTML　+　"<br>"; //HTMLとして出力
   displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
 });
 
@@ -248,9 +248,8 @@ function answerSendButtonOnClick(){
   }
   
   let answerText = answerTextArea.value; //テキストを読み取る
-  let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   console.log(answerText);
-  socket.emit("answerSend", {html:answerTextHTML, playerToken:myToken, num:playerNum}); //サーバーに送る
+  socket.emit("answerSend", {text:answerText, playerToken:myToken, num:playerNum}); //サーバーに送る
   
   answerSendButton.innerHTML = "回答送信済み";
 }

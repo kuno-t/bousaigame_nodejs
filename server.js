@@ -51,7 +51,7 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /*チャット*/
   socket.on("client_to_server_text", function(data) { //client_to_serverという名前の通信を受け付けたら
-    io.sockets.emit("server_to_client_text", { html:htmlSanitize(data.html), number:data.number, name:data.name }); //server_to_clientという名前で送り返す
+    io.sockets.emit("server_to_client_text", { text:htmlSanitize(data.text), number:data.number, name:data.name }); //server_to_clientという名前で送り返す
   });
   
   /*問題と画像*/
@@ -171,7 +171,9 @@ io.sockets.on("connection", function(socket) { //接続処理後の通信定義
   
   /* 回答の収集 */
   socket.on("answerSend",function(data){
-    answerHTMLList[data.num] = htmlSanitize(data.html); //入力はサニタイジング
+    let answerTextSanitize = htmlSanitize(data.text); //入力はサニタイジング
+    let answerTextHTML = answerTextSanitize.replace(/\n/g, "<br>");
+    answerHTMLList[data.num] = answerTextHTML;
     if(-1 == answerAgree.indexOf(data.playerToken)){
       answerAgree.push(data.playerToken);
     }
