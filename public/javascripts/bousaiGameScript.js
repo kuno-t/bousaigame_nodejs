@@ -148,6 +148,9 @@ socket.on("all_agree",function(data){
   scoreText.hidden = true;
   questionTextAndButton.hidden = false; //表示テキストの切り替え
   
+  chatButton.hidden = true; //チャットボタンと回答ボタンを切り替える
+  answerSendButton.hidden = false;
+  
   startButton.innerHTML = "開始";
   startButton.disabled = false;
   nextGameButton.innerHTML = "次へ";
@@ -267,6 +270,8 @@ socket.on("answerOpen",function(data){
   answerSendButton.innerHTML = "回答として送信";
 
   questionTextAndButton.hidden = true;
+  answerSendButton.hidden = true;
+  chatButton.hidden = false;
   voteText.hidden = false;
 });
 
@@ -461,8 +466,10 @@ socket.on("reset_c",function(data){
   }
     
   noEntryText.hidden = false;
+  chatButton.hidden = false;
   setUpText.hidden = true;
   questionTextAndButton.hidden = true;
+  answerSendButton.hidden = true;
   voteText.hidden = true;
   scoreText.hidden = true;
   resultText.hidden = true;
