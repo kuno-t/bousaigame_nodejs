@@ -84,8 +84,9 @@ const chatButton = document.getElementById("chatButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
-const voteSUM = 7; //投票時の合計得点数は暫定7
 const maxStep = 3; //最大問題回数
+const voteSUM = function(){return (playerList.length-1)*3+1}; //投票時の合計得点数を計算
+
 var step = 0; //現在のステップ
 const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
@@ -267,12 +268,14 @@ socket.on("answerOpen",function(data){
   });
   
   answerTextArea.value = ""; //テキストエリアをクリア
-  answerSendButton.innerHTML = "回答として送信";
+  answerSendButton.innerHTML = "回答として送信";//ボタンを戻す
 
-  questionTextAndButton.hidden = true;
+  /* 次の画面に遷移 */
+  questionTextAndButton.hidden = true; 
   answerSendButton.hidden = true;
   chatButton.hidden = false;
   voteText.hidden = false;
+  document.getElementById("voteSUM").innerHTML = `${voteSUM()}`;
 });
 
 /* +に投票 */
@@ -288,13 +291,13 @@ $(function(){
     if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
       if($(this).attr("data-num") <= playerList.length){
         console.log(`${voteNum},${playerList.length}`);
-        if(voteList[voteNum] < voteSUM){ //合計点以上でないか
+        if(voteList[voteNum] < voteSUM()){ //合計点以上でないか
           voteList[voteNum] += 1;
           console.log($(this).attr("data-num"),voteList);
           displayVoteElement[voteNum].innerHTML = voteList[voteNum];
         }
         else { //合計点以上を投票しようとした時
-          window.alert(`合計${voteSUM}点以上は投票できません`)
+          window.alert(`合計${voteSUM()}点以上は投票できません`)
         }
       } else {
         window.alert("空席には投票できません");
@@ -340,7 +343,7 @@ function voteSendButtonOnClick(){
     return; //プレイヤー未定なら警告だけ出して何もしない
   }
   
-  if(voteSUM == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
+  if(voteSUM() == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
     socket.emit("score_set",{voteList: voteList, playerToken:myToken, num:playerNum});
     console.log("send");  
     
@@ -348,7 +351,7 @@ function voteSendButtonOnClick(){
     voteSendButton.innerHTML = "送信済み";
     voteSendButton.disabled = true;
   } else {
-    window.alert(`合計${voteSUM}点になるように割り振ってください`);
+    window.alert(`合計${voteSUM()}点になるように割り振ってください`);
   }
 }
 
@@ -464,7 +467,8 @@ socket.on("reset_c",function(data){
     displayAnswer.innerHTML = ""; //チャット欄からっぽにする
     displayScoreElement[i].innerHTML = "0"; //スコアは0に戻す
   }
-    
+  
+  /*画面表示元どおりに*/
   noEntryText.hidden = false;
   chatButton.hidden = false;
   setUpText.hidden = true;
@@ -473,6 +477,12 @@ socket.on("reset_c",function(data){
   voteText.hidden = true;
   scoreText.hidden = true;
   resultText.hidden = true;
+  
+  /*ボタンの押下不可状態も直す*/
+  startButton.innerHTML = "開始";
+  startButton.disabled = false;
+  nextGameButton.innerHTML = "次へ";
+  nextGameButton.disabled = false;
   
 });
 
