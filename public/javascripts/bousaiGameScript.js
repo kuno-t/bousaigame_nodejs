@@ -84,8 +84,9 @@ const chatButton = document.getElementById("chatButton");
 const seat = document.getElementsByClassName("seat");
 const playerName = document.getElementById("playerName");
 const choiceNum = 3; //選択肢数は暫定3
-const voteSUM = 7; //投票時の合計得点数は暫定7
 const maxStep = 3; //最大問題回数
+const voteSUM = function(){return (playerList.length-1)*3+1}; //投票時の合計得点数を計算
+
 var step = 0; //現在のステップ
 const dataUrl = "json/bousaiGameData.json"; //json参照用
 var bousaiJSON; //JSONが入る
@@ -119,23 +120,26 @@ function chatButtonOnClick() {
     return; //プレイヤー未定なら警告だけ出して何もしない
   }
   let answerText = answerTextArea.value; //テキストを読み取る
-  let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
   answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
-  socket.emit("client_to_server_text", {html:answerTextHTML, number:playerNum, name:nowPlayerName}); //サーバーに送る
+  socket.emit("client_to_server_text", {text:answerText, number:playerNum, name:nowPlayerName}); //サーバーに送る
 }
 
 socket.on("server_to_client_text",function(data){ //サーバーから受け取る
-  displayAnswer[data.number].innerHTML += data.name + ":<br>" + data.html　+　"<br>"; //HTMLとして出力
+  let answerTextHTML = data.text.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
+  displayAnswer[data.number].innerHTML += data.name + ":<br>" + answerTextHTML　+　"<br>"; //HTMLとして出力
   displayAnswer[data.number].scrollTop = displayAnswer[data.number].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
 });
 
 /* ゲームスタート */
 function startButtonOnClick() {
   
+  startButton.innerHTML = "送信済み";
+  startButton.disabled = true;
+  
   $.getJSON(dataUrl, bousaiJSON => {
     console.log(JSON.stringify(bousaiJSON));
-    socket.emit("game_start", {bousaiJSON: bousaiJSON, num:playerNum});
+    socket.emit("game_start", {bousaiJSON: bousaiJSON, num:playerNum, playerToken: myToken});
   });
 }
 
@@ -144,6 +148,14 @@ socket.on("all_agree",function(data){
   setUpText.hidden = true;
   scoreText.hidden = true;
   questionTextAndButton.hidden = false; //表示テキストの切り替え
+  
+  chatButton.hidden = true; //チャットボタンと回答ボタンを切り替える
+  answerSendButton.hidden = false;
+  
+  startButton.innerHTML = "開始";
+  startButton.disabled = false;
+  nextGameButton.innerHTML = "次へ";
+  nextGameButton.disabled = false;
   
   step = data.step;
   stepText.innerHTML = `${step}/${maxStep}`;
@@ -220,21 +232,6 @@ socket.on("c_sit_down",function(data){ //空いていたら着席するのでそ
   }
 });
 
-/* //古いバージョン
-socket.on("c_sit_down",function(data){
-  displayPlayerNameElement[data.num].innerHTML = playerList[data.num] = data.name; //名前を表示しつつプレイヤーリストに保持
-  document.getElementById(`seat${data.num + 1}`).disabled = true; //着席したらボタンを非活性化
-  
-  if(data.oldNum != -1) { 
-    displayPlayerNameElement[data.oldNum].innerHTML = "空席";
-    playerList[data.oldNum] = false;
-    document.getElementById(`seat${data.oldNum + 1}`).disabled = false;
-  } //初めての着席じゃなければ、前に座っていた席を空席にしてボタンを活性化
-  
-  console.log(playerList);
-});
-*/
-
 function chair_controll(){ //参加者の椅子の制御
   for(let index = 0; index<5; index++){
     if(index < playerList.length) {
@@ -255,10 +252,10 @@ function answerSendButtonOnClick(){
   }
   
   let answerText = answerTextArea.value; //テキストを読み取る
-  let answerTextHTML = answerText.replace(/\n/g, "<br>"); //普通だと一個置き換えた時点で終わるので正規表現を使う
-  answerTextArea.value = ""; //テキストエリアをクリア
   console.log(answerText);
-  socket.emit("answerSend", {html:answerTextHTML, playerToken:myToken, num:playerNum}); //サーバーに送る
+  socket.emit("answerSend", {text:answerText, playerToken:myToken, num:playerNum}); //サーバーに送る
+  
+  answerSendButton.innerHTML = "回答送信済み"; //送信済みであることを示す
 }
 
 socket.on("answerOpen",function(data){
@@ -266,12 +263,19 @@ socket.on("answerOpen",function(data){
   let index;
   data.answerHTMLList.forEach(function(HTML,index){
     console.log(index,HTML);
-    displayAnswer[index].innerHTML +="<span class='answerTextHTML'>" + HTML +　"</span><br>"; //HTMLとして出力
+    displayAnswer[index].innerHTML +="<span class='answerTextHTML'>" + `${step}問目：`+ HTML +　"</span><br>"; //HTMLとして出力
     displayAnswer[index].scrollTop = displayAnswer[index].scrollHeight; //scrollTopは現在スクロール位置、scrollHeightは現在のスクロール可能な高さ。 これで一番下まで強制でスクロールする。
   });
+  
+  answerTextArea.value = ""; //テキストエリアをクリア
+  answerSendButton.innerHTML = "回答を送信";//ボタンを戻す
 
-  questionTextAndButton.hidden = true;
+  /* 次の画面に遷移 */
+  questionTextAndButton.hidden = true; 
+  answerSendButton.hidden = true;
+  chatButton.hidden = false;
   voteText.hidden = false;
+  document.getElementById("voteSUM").innerHTML = `${voteSUM()}`;
 });
 
 /* +に投票 */
@@ -284,16 +288,16 @@ $(function(){
     }
     
     var voteNum = $(this).attr("data-num")-1;
-    if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
       if($(this).attr("data-num") <= playerList.length){
         console.log(`${voteNum},${playerList.length}`);
-        if(voteList[voteNum] < voteSUM){ //合計点以上でないか
+        if(voteList[voteNum] < voteSUM()){ //合計点以上でないか
           voteList[voteNum] += 1;
           console.log($(this).attr("data-num"),voteList);
           displayVoteElement[voteNum].innerHTML = voteList[voteNum];
         }
         else { //合計点以上を投票しようとした時
-          window.alert(`合計${voteSUM}点以上は投票できません`)
+          window.alert(`合計${voteSUM()}点以上は投票できません`)
         }
       } else {
         window.alert("空席には投票できません");
@@ -315,7 +319,7 @@ $(function(){
     }
     
     var voteNum = $(this).attr("data-num")-1;
-    if(voteNum != playerNum || true){ //プレイヤー番号と一致するところには投票不可
+    if(voteNum != playerNum){ //プレイヤー番号と一致するところには投票不可
       if(voteList[voteNum] > 0){
         voteList[voteNum] -= 1;
         console.log($(this).attr("data-num"),voteList);
@@ -339,7 +343,7 @@ function voteSendButtonOnClick(){
     return; //プレイヤー未定なら警告だけ出して何もしない
   }
   
-  if(voteSUM == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
+  if(voteSUM() == voteList.reduce((sum, element) => sum + element, 0)){ //配列が合計七なら実行
     socket.emit("score_set",{voteList: voteList, playerToken:myToken, num:playerNum});
     console.log("send");  
     
@@ -347,7 +351,7 @@ function voteSendButtonOnClick(){
     voteSendButton.innerHTML = "送信済み";
     voteSendButton.disabled = true;
   } else {
-    window.alert(`合計${voteSUM}点になるように割り振ってください`);
+    window.alert(`合計${voteSUM()}点になるように割り振ってください`);
   }
 }
 
@@ -357,7 +361,7 @@ socket.on("score_get_back", function(data){
   voteText.hidden = true;
   scoreText.hidden = false;
   scoreList = data.scoreList;
-  voteSendButton.innerHTML = "送信";
+  voteSendButton.innerHTML = "決定";
   voteSendButton.disabled = false;
   
   for(let index=0; index<5; index++){
@@ -387,6 +391,8 @@ function nextGameButtonOnClick(){
     socket.emit("game_end",{step:step,maxStep:maxStep, num:playerNum}); //終了時 
   }
   else {
+    nextGameButton.innerHTML = "送信済み";
+    nextGameButton.disabled = true;
     startButtonOnClick();
   }
 }
@@ -396,7 +402,7 @@ socket.on("game_end_back",function(data){
     let copyPlayerList = data.playerList;
     for(let i=0; i<copyPlayerList.length-1; i++){ //バブルソート
       for(let j=copyPlayerList.length-1; j>i; j--){
-        if(copyPlayerList[j] > copyPlayerList[j-1]){
+        if(copyPlayerList[j].score > copyPlayerList[j-1].score){
           let temp = copyPlayerList[j];
           copyPlayerList[j] = copyPlayerList[j-1];
           copyPlayerList[j-1] = temp;
@@ -461,13 +467,22 @@ socket.on("reset_c",function(data){
     displayAnswer.innerHTML = ""; //チャット欄からっぽにする
     displayScoreElement[i].innerHTML = "0"; //スコアは0に戻す
   }
-    
+  
+  /*画面表示元どおりに*/
   noEntryText.hidden = false;
+  chatButton.hidden = false;
   setUpText.hidden = true;
   questionTextAndButton.hidden = true;
+  answerSendButton.hidden = true;
   voteText.hidden = true;
   scoreText.hidden = true;
   resultText.hidden = true;
+  
+  /*ボタンの押下不可状態も直す*/
+  startButton.innerHTML = "開始";
+  startButton.disabled = false;
+  nextGameButton.innerHTML = "次へ";
+  nextGameButton.disabled = false;
   
 });
 
@@ -496,41 +511,3 @@ function phase_setUp(phase){
     resultText.hidden = false;
   }
 }
-
-/* こっちはデバッグ 
-var bousaiJSON = {
-    question:[{
-        text:"大きな地震に被災したときのことを想定します。<br>備蓄のあった以下の食べ物のどれかについて、<br>他の選択肢には無い長所を考えてみましょう。<br>限られた条件下で特に有用であれば、<br>条件を付け足してみても構いません。<br>",
-        image:[{
-            alt:"カップラーメン",
-            src:"food_cup_noodle_close.png"
-        },
-        {
-            alt:"乾パン",
-            src:"bousai_kanpan.png"
-        },
-        {
-            alt:"缶詰",
-            src:"food_kandume_close.png"
-        }
-        ]
-    },
-    {
-        text:"大きな地震に被災したときのことを想定します。<br>水を保管、運搬するための以下の容器について、<br>他の選択肢には無い長所を考えてみましょう。<br>限られた条件下で特に有用であれば、<br>条件を付け足してみても構いません。<br>",
-        image:[{
-            alt:"ペットボトル",
-            src:"bousai_water.png"
-        },
-        {
-            alt:"バケツ",
-            src:"bucket_blue_water_down.png"
-        },
-        {
-            alt:"レジ袋",
-            src:"shopping_bag_rejibukuro.png"
-        }
-        ]
-    }
-    ]
-};
-*/

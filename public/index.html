@@ -41,12 +41,11 @@
         <div class="informationText" id="questionTextAndButton" hidden="hidden">
           <div class="step" id="stepText"></div>
           <div id="questionText"></div>
-          <button class='send_OK_button' id='answerSendButton'>回答として送信</button>
         </div>
         
         <!-- > 投票時 < -->
         <div class="informationText" id="voteText" hidden="hidden">
-          <span> あなたが面白いと思ったり、<br>納得できる意見を出した人に<br>『なるほどポイント』を贈ります。<br>合計7点になるように、点数を割り振ってください。<br></span><br>
+          <span> あなたが面白いと思ったり、<br>納得できる意見を出した人に<br>『なるほどポイント』を贈ります。<br>合計<span id="voteSUM">7</span>点になるように、点数を割り振ってください。<br></span><br>
           
           <div class="vote" id="votePlayer1">
             <span id="votePlayerName1">空席</span>
@@ -128,6 +127,7 @@
         ></textarea
         ><br />
         <button id="chatButton" type="button">チャット送信</button>
+        <button class='send_OK_button' id='answerSendButton' hidden='true'>回答を送信</button>
       </div>
     </div>
     <div class="displayAnswerContainer">
