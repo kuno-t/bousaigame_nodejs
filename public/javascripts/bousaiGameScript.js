@@ -255,7 +255,7 @@ function answerSendButtonOnClick(){
   console.log(answerText);
   socket.emit("answerSend", {text:answerText, playerToken:myToken, num:playerNum}); //サーバーに送る
   
-  answerSendButton.innerHTML = "回答送信済み";
+  answerSendButton.innerHTML = "回答送信済み"; //送信済みであることを示す
 }
 
 socket.on("answerOpen",function(data){
@@ -268,7 +268,7 @@ socket.on("answerOpen",function(data){
   });
   
   answerTextArea.value = ""; //テキストエリアをクリア
-  answerSendButton.innerHTML = "回答として送信";//ボタンを戻す
+  answerSendButton.innerHTML = "回答を送信";//ボタンを戻す
 
   /* 次の画面に遷移 */
   questionTextAndButton.hidden = true; 
